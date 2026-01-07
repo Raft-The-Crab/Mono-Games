@@ -1,0 +1,46 @@
+{
+  "id": "breakout",
+  "name": "Breakout",
+  "version": "1.0.0",
+  "description": "Classic brick-breaking game with power-ups and combo system",
+  "category": "arcade",
+  "controls": {
+    "keyboard": {
+      "ArrowLeft/A": "Move paddle left",
+      "ArrowRight/D": "Move paddle right",
+      "Space": "Launch ball"
+    },
+    "mouse": {
+      "Move": "Control paddle",
+      "Click": "Launch ball"
+    },
+    "touch": {
+      "Drag": "Move paddle",
+      "Tap": "Launch ball"
+    }
+  },
+  "features": [
+    "Classic brick-breaking gameplay",
+    "6 rows of colorful bricks",
+    "Power-ups (wider paddle, fireball, slow ball, extra life)",
+    "Combo system for consecutive hits",
+    "Progressive difficulty",
+    "Particle effects on brick destruction",
+    "Multiple lives system",
+    "Level progression",
+    "High score tracking",
+    "Responsive controls"
+  ],
+  "powerUps": [
+    "Wider Paddle - Increases paddle width",
+    "Fireball - Ball destroys bricks without bouncing",
+    "Slow Ball - Reduces ball speed temporarily",
+    "Extra Life - Adds one life"
+  ],
+  "tags": ["arcade", "classic", "breakout", "brick-breaker", "power-ups", "combo"],
+  "difficulty": "medium",
+  "multiplayerSupport": false,
+  "offlineSupport": true,
+  "size": "120KB",
+  "coreGame": true
+}
