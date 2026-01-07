@@ -1,27 +1,56 @@
+# ==========================================
+# PROPRIETARY - SECURITY CRITICAL
+# DO NOT COMMIT SENSITIVE FILES
+# ==========================================
+
 # Dependencies
 node_modules/
 .pnp
 .pnp.js
+.yarn/
+.pnpm-store/
+package-lock.json
 
 # Testing
 coverage/
 *.lcov
+.nyc_output/
 
 # Production builds
 dist/
 build/
+out/
 *.exe
 *.dmg
 *.app
 *.apk
 *.aab
+*.bundle.js
+*.chunk.js
 
-# Environment variables
+# Environment variables & Secrets (CRITICAL - NEVER COMMIT)
 .env
+.env.*
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
+*.key
+*.pem
+*.cert
+config/secrets.json
+src/server/.env
+
+# API Keys & Credentials (NEVER COMMIT THESE)
+**/api-keys.json
+**/credentials.json
+**/secrets.js
+supabase-key.txt
+jwt-secret.txt
+github-token.txt
 
 # Logs
 logs/
