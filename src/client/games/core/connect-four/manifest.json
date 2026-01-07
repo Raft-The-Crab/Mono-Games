@@ -1,0 +1,20 @@
+{
+    "id": "connect-four",
+    "name": "Connect Four",
+    "version": "1.0.0",
+    "description": "Drop discs and connect four in a row! Play against 5 AI difficulty levels.",
+    "category": "strategy",
+    "icon": "🔴",
+    "controls": {
+        "mouse": "Click column to drop disc"
+    },
+    "features": [
+        "5 AI difficulty levels",
+        "Drop animations",
+        "Win highlighting",
+        "Cartoony 3D pieces"
+    ],
+    "author": "Mono Games Team",
+    "core": true,
+    "size": "1MB"
+}

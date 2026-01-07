@@ -22,7 +22,9 @@ const useSettingsStore = create(
         gameplay: {
           difficulty: 'normal', // easy, normal, hard
           vibration: true,
-          autoSave: true
+          autoSave: true,
+          aiEnabled: true, // Enable AI mode for offline play
+          aiLevel: 3 // 1=Very Easy, 2=Easy, 3=Normal, 4=Hard, 5=Expert
         },
         display: {
           theme: 'default', // default, blue, green, red
@@ -77,7 +79,9 @@ const useSettingsStore = create(
             gameplay: {
               difficulty: 'normal',
               vibration: true,
-              autoSave: true
+              autoSave: true,
+              aiEnabled: true,
+              aiLevel: 3
             },
             display: {
               theme: 'default',
@@ -101,13 +105,13 @@ const useSettingsStore = create(
       toggleFullscreen: () => {
         const { settings } = get();
         const newFullscreen = !settings.display.fullscreen;
-        
+
         if (newFullscreen) {
           document.documentElement.requestFullscreen?.();
         } else {
           document.exitFullscreen?.();
         }
-        
+
         set((state) => ({
           settings: {
             ...state.settings,

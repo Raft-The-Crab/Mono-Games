@@ -1,35 +1,55 @@
 /* Cartoony Classic Gaming Theme - Mono Games */
+/* Enhanced with extra rounded, playful aesthetics */
 
 :root {
   /* Warm, friendly cartoony colors */
   --primary: #FF6B35;
+  --primary-light: #FF8F66;
+  --primary-dark: #E55A2B;
   --secondary: #F7931E;
+  --secondary-light: #FFAB4D;
   --accent: #4ECDC4;
+  --accent-light: #7EDDD6;
   --success: #95E1D3;
   --danger: #E63946;
-  
+  --warning: #FFD93D;
+
   /* Backgrounds - soft and warm */
   --bg-main: #FFF8DC;
   --bg-card: #FFFFFF;
   --bg-dark: #2C3E50;
   --bg-pattern: #FFE5B4;
-  
+  --bg-gradient: linear-gradient(135deg, #FFF8DC 0%, #FFE5B4 50%, #87CEEB 100%);
+  --bg-sky: linear-gradient(180deg, #87CEEB 0%, #B8E4F9 50%, #FFF8DC 100%);
+
   /* Text colors */
   --text-primary: #2C3E50;
   --text-secondary: #546E7A;
   --text-light: #FFFFFF;
-  
-  /* Borders and shadows */
+  --text-muted: #90A4AE;
+
+  /* Borders and shadows - softer for cartoony look */
   --border-color: #FFB347;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
-  
-  /* Border radius for cartoony feel */
-  --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-xl: 32px;
+  --border-thick: 4px;
+  --shadow-color: rgba(44, 62, 80, 0.15);
+  --shadow-sm: 0 4px 8px var(--shadow-color);
+  --shadow-md: 0 6px 16px var(--shadow-color);
+  --shadow-lg: 0 8px 32px var(--shadow-color);
+  --shadow-pop: 0 8px 0 var(--text-primary);
+
+  /* Extra rounded border radius for maximum cartoony feel */
+  --radius-sm: 16px;
+  --radius-md: 24px;
+  --radius-lg: 32px;
+  --radius-xl: 48px;
+  --radius-pill: 9999px;
+  --radius-circle: 50%;
+
+  /* Animation timings */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  --transition-bounce: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 /* Cartoony Typography */
@@ -38,7 +58,7 @@
   font-size: 3rem;
   font-weight: 900;
   color: var(--primary);
-  text-shadow: 
+  text-shadow:
     3px 3px 0 var(--secondary),
     6px 6px 0 rgba(0, 0, 0, 0.1);
   letter-spacing: 1px;
@@ -74,7 +94,7 @@
   border-radius: var(--radius-xl);
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 
+  box-shadow:
     0 6px 0 var(--text-primary),
     var(--shadow-md);
   transition: all 0.2s ease;
@@ -84,14 +104,14 @@
 
 .cartoony-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 
+  box-shadow:
     0 9px 0 var(--text-primary),
     var(--shadow-lg);
 }
 
 .cartoony-btn:active {
   transform: translateY(3px);
-  box-shadow: 
+  box-shadow:
     0 3px 0 var(--text-primary),
     var(--shadow-sm);
 }
@@ -230,7 +250,7 @@
   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--primary) 100%);
   background-size: 200% 100%;
   border-radius: var(--radius-xl);
-  box-shadow: 
+  box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.4),
     0 2px 8px rgba(0, 0, 0, 0.2);
   transition: width 0.3s ease;
@@ -265,7 +285,7 @@
 .cartoony-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 
+  box-shadow:
     inset 0 2px 4px rgba(0, 0, 0, 0.05),
     0 0 0 4px rgba(255, 107, 53, 0.2);
   transform: scale(1.02);
@@ -274,15 +294,13 @@
 /* Cartoony Divider */
 .cartoony-divider {
   height: 8px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--primary) 0px,
-    var(--primary) 20px,
-    var(--secondary) 20px,
-    var(--secondary) 40px,
-    var(--accent) 40px,
-    var(--accent) 60px
-  );
+  background: repeating-linear-gradient(90deg,
+      var(--primary) 0px,
+      var(--primary) 20px,
+      var(--secondary) 20px,
+      var(--secondary) 40px,
+      var(--accent) 40px,
+      var(--accent) 60px);
   margin: 2rem 0;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
@@ -298,41 +316,76 @@
 
 /* Striped pattern */
 .stripes {
-  background: repeating-linear-gradient(
-    45deg,
-    var(--bg-main),
-    var(--bg-main) 10px,
-    var(--bg-pattern) 10px,
-    var(--bg-pattern) 20px
-  );
+  background: repeating-linear-gradient(45deg,
+      var(--bg-main),
+      var(--bg-main) 10px,
+      var(--bg-pattern) 10px,
+      var(--bg-pattern) 20px);
 }
 
 /* Cartoony Animations */
 @keyframes wiggle {
-  0%, 100% { transform: rotate(-5deg); }
-  25% { transform: rotate(-8deg) scale(1.05); }
-  75% { transform: rotate(-2deg) scale(1.05); }
+
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+
+  25% {
+    transform: rotate(-8deg) scale(1.05);
+  }
+
+  75% {
+    transform: rotate(-2deg) scale(1.05);
+  }
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 @keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .bounce {
@@ -399,7 +452,7 @@
   .cartoony-title {
     font-size: 2rem;
   }
-  
+
   .cartoony-btn {
     font-size: 1rem;
     padding: 0.75rem 1.5rem;

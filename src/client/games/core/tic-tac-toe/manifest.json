@@ -1,0 +1,20 @@
+{
+    "id": "tic-tac-toe",
+    "name": "Tic Tac Toe",
+    "version": "1.0.0",
+    "description": "Classic X and O game with AI opponent. Play against 5 difficulty levels!",
+    "category": "strategy",
+    "icon": "❌",
+    "controls": {
+        "mouse": "Click to place your X"
+    },
+    "features": [
+        "5 AI difficulty levels",
+        "Minimax algorithm for expert AI",
+        "Cartoony visuals",
+        "Win animations"
+    ],
+    "author": "Mono Games Team",
+    "core": true,
+    "size": "0.5MB"
+}
