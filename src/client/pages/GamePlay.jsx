@@ -1,11 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { loadGame } from '../services/gameStore';
+import { PlayIcon, PauseIcon, HomeIcon, GamepadIcon } from '../components/Icons';
 
 function GamePlay() {
   const { gameId } = useParams();
   const navigate = useNavigate();
-  const canvasRef = useRef(null);
   const gameInstanceRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,41 +23,30 @@ function GamePlay() {
         setIsLoading(true);
         setError(null);
 
-        // Load game module
+        // Load game class
         const GameClass = await loadGame(gameId);
 
         if (!mounted) return;
 
-        // Create canvas if not exists
-        if (!canvasRef.current) {
-          const canvas = document.createElement('canvas');
-          canvas.id = 'game-canvas';
-          canvas.style.display = 'block';
-          canvas.style.margin = '0 auto';
-          canvas.style.border = '3px solid var(--primary)';
-          canvas.style.boxShadow = '0 0 20px rgba(0, 217, 255, 0.5)';
-          document.getElementById('game-container').appendChild(canvas);
-          canvasRef.current = canvas;
-        }
-
-        // Initialize game
-        const game = new GameClass({
-          onScoreChange: (score, highScore) => {
-            setGameInfo({ score, highScore });
-          },
-          onGameOver: (result) => {
-            console.log('Game Over:', result);
-            // Could show game over modal here
-          },
-          onPause: () => setIsPaused(true),
-          onResume: () => setIsPaused(false)
-        });
-
-        game.init('game-canvas');
+        // Initialize game with container ID
+        const game = new GameClass('game-container');
+        game.init();
         game.start();
 
         gameInstanceRef.current = game;
         setIsLoading(false);
+
+        // Poll for score updates
+        const scoreInterval = setInterval(() => {
+          if (gameInstanceRef.current) {
+            setGameInfo({
+              score: gameInstanceRef.current.score || 0,
+              highScore: gameInstanceRef.current.highScore || 0
+            });
+          }
+        }, 100);
+
+        return () => clearInterval(scoreInterval);
 
       } catch (err) {
         console.error('Failed to load game:', err);
@@ -83,8 +72,10 @@ function GamePlay() {
     if (gameInstanceRef.current) {
       if (isPaused) {
         gameInstanceRef.current.resume();
+        setIsPaused(false);
       } else {
         gameInstanceRef.current.pause();
+        setIsPaused(true);
       }
     }
   };
@@ -92,7 +83,7 @@ function GamePlay() {
   const handleRestart = () => {
     if (gameInstanceRef.current) {
       gameInstanceRef.current.reset();
-      gameInstanceRef.current.start();
+      setIsPaused(false);
     }
   };
 
@@ -110,13 +101,30 @@ function GamePlay() {
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        background: 'var(--bg-gradient)'
       }}>
-        <div className="retro-title pulse" style={{ marginBottom: '2rem' }}>
-          Loading Game...
+        <div style={{
+          width: '80px',
+          height: '80px',
+          marginBottom: '1.5rem'
+        }}>
+          <div className="loading-spinner" style={{
+            width: '80px',
+            height: '80px',
+            border: '6px solid var(--border-color)',
+            borderTop: '6px solid var(--primary)',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
         </div>
-        <div className="retro-progress" style={{ width: '300px' }}>
-          <div className="retro-progress-bar" style={{ width: '100%' }}></div>
+        <div style={{
+          fontFamily: "'Comic Sans MS', cursive",
+          fontSize: '1.5rem',
+          fontWeight: 700,
+          color: 'var(--primary)'
+        }}>
+          Loading {formatGameName(gameId)}...
         </div>
       </div>
     );
@@ -129,21 +137,35 @@ function GamePlay() {
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        background: 'var(--bg-gradient)'
       }}>
-        <div className="retro-card" style={{
+        <div className="cartoony-card" style={{
           padding: '3rem',
           textAlign: 'center',
           maxWidth: '500px'
         }}>
-          <h2 className="retro-title" style={{ color: 'var(--accent)', marginBottom: '1rem' }}>
-            Error
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: 'var(--radius-circle)',
+            background: 'rgba(230, 57, 70, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1.5rem',
+            border: '4px solid var(--danger)'
+          }}>
+            <GamepadIcon size={40} color="var(--danger)" />
+          </div>
+          <h2 className="cartoony-subtitle" style={{ color: 'var(--danger)', marginBottom: '1rem' }}>
+            Oops! Game Error
           </h2>
-          <p className="retro-text" style={{ marginBottom: '2rem' }}>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
             {error}
           </p>
-          <button onClick={handleExit} className="retro-btn">
-            ← Back to Launcher
+          <button onClick={handleExit} className="cartoony-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+            <HomeIcon size={18} color="white" /> Back to Launcher
           </button>
         </div>
       </div>
@@ -151,57 +173,89 @@ function GamePlay() {
   }
 
   return (
-    <div className="game-play" style={{
+    <div style={{
       minHeight: '100vh',
-      padding: '2rem',
+      padding: '1.5rem',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      background: 'var(--bg-gradient)'
     }}>
       {/* Game Header */}
-      <div style={{
+      <div className="cartoony-card" style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: '1rem',
+        padding: '1rem 1.5rem',
         flexWrap: 'wrap',
         gap: '1rem'
       }}>
-        <div>
-          <h2 className="retro-subtitle">{formatGameName(gameId)}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <GamepadIcon size={28} color="var(--primary)" />
+          <h2 style={{
+            fontFamily: "'Comic Sans MS', cursive",
+            fontWeight: 900,
+            fontSize: '1.5rem',
+            color: 'var(--text-primary)',
+            margin: 0
+          }}>
+            {formatGameName(gameId)}
+          </h2>
         </div>
-        
-        <div style={{
-          display: 'flex',
-          gap: '0.5rem',
-          alignItems: 'center'
-        }}>
-          <div className="retro-text" style={{ marginRight: '1rem' }}>
-            Score: <span style={{ color: 'var(--primary)' }}>{gameInfo.score}</span> |
-            High: <span style={{ color: 'var(--secondary)' }}>{gameInfo.highScore}</span>
+
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{
+            display: 'flex',
+            gap: '1.5rem',
+            marginRight: '1rem'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                fontFamily: "'Comic Sans MS', cursive",
+                fontWeight: 900,
+                fontSize: '1.5rem',
+                color: 'var(--primary)'
+              }}>
+                {gameInfo.score}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>SCORE</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                fontFamily: "'Comic Sans MS', cursive",
+                fontWeight: 900,
+                fontSize: '1.5rem',
+                color: 'var(--secondary)'
+              }}>
+                {gameInfo.highScore}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>BEST</div>
+            </div>
           </div>
-          
+
           <button
             onClick={handlePause}
-            className="retro-btn"
-            style={{ fontSize: '0.75rem', padding: '0.5rem 1rem' }}
+            className="cartoony-btn cartoony-btn-secondary"
+            style={{ padding: '0.75rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
-            {isPaused ? '▶ Resume' : '⏸ Pause'}
+            {isPaused ? <PlayIcon size={16} /> : <PauseIcon size={16} />}
+            {isPaused ? 'Resume' : 'Pause'}
           </button>
-          
+
           <button
             onClick={handleRestart}
-            className="retro-btn retro-btn-secondary"
-            style={{ fontSize: '0.75rem', padding: '0.5rem 1rem' }}
+            className="cartoony-btn cartoony-btn-secondary"
+            style={{ padding: '0.75rem 1.25rem' }}
           >
             🔄 Restart
           </button>
-          
+
           <button
             onClick={handleExit}
-            className="retro-btn retro-btn-danger"
-            style={{ fontSize: '0.75rem', padding: '0.5rem 1rem' }}
+            className="cartoony-btn cartoony-btn-danger"
+            style={{ padding: '0.75rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
-            ← Exit
+            <HomeIcon size={16} color="white" /> Exit
           </button>
         </div>
       </div>
@@ -218,13 +272,18 @@ function GamePlay() {
         }}
       />
 
-      {/* Instructions */}
-      <div style={{
+      {/* Controls Hint */}
+      <div className="cartoony-card" style={{
         marginTop: '1rem',
-        textAlign: 'center'
+        textAlign: 'center',
+        padding: '1rem'
       }}>
-        <p className="retro-text" style={{ color: 'var(--text-dark)' }}>
-          Use Arrow Keys or WASD to move • Space to Pause • Swipe on mobile
+        <p style={{
+          color: 'var(--text-secondary)',
+          fontFamily: "'Comic Sans MS', cursive",
+          margin: 0
+        }}>
+          🎮 Arrow Keys / WASD to move • Space to pause • R to restart
         </p>
       </div>
     </div>

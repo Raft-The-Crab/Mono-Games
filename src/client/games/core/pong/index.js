@@ -1,274 +1,247 @@
 import BaseGame from '../../shared/framework/BaseGame.js';
 import { getAI, AI_LEVELS } from '../../shared/AIOpponent.js';
 
-export default class Pong extends BaseGame {
-  constructor(containerId, aiLevel = 3) {
-    super(containerId, 'pong', 800, 600);
+/**
+ * Classic Pong Game with AI
+ */
+class PongGame extends BaseGame {
+  constructor(containerId) {
+    super(containerId, 'pong', 800, 500);
 
-    // AI System
-    this.ai = getAI(aiLevel);
-    this.aiLevel = aiLevel;
+    this.ai = getAI(3);
+    this.aiLevel = 3;
 
-    // Paddles
+    // Paddle settings
     this.paddleWidth = 15;
-    this.paddleHeight = 100;
-    this.paddleSpeed = 6;
+    this.paddleHeight = 80;
+    this.paddleSpeed = 8;
 
-    this.leftPaddle = {
-      x: 20,
-      y: this.canvas.height / 2 - this.paddleHeight / 2,
-      score: 0
-    };
-
-    this.rightPaddle = {
-      x: this.canvas.width - 20 - this.paddleWidth,
-      y: this.canvas.height / 2 - this.paddleHeight / 2,
-      score: 0
-    };
-
-    // Ball
-    this.ball = {
-      x: this.canvas.width / 2,
-      y: this.canvas.height / 2,
-      radius: 10,
-      speedX: 5,
-      speedY: 5
-    };
-
-    // Keys pressed
-    this.keys = {};
-
-    // Calculate AI speed based on level
-    this.updateAISpeed();
-  }
-
-  updateAISpeed() {
-    const config = this.ai.getConfig();
-    // AI speed scales with level
-    this.aiSpeed = 2 + (this.aiLevel * 0.8);
-  }
-
-  setAILevel(level) {
-    this.aiLevel = Math.max(1, Math.min(5, level));
-    this.ai.setLevel(this.aiLevel);
-    this.updateAISpeed();
+    // Ball settings
+    this.ballSize = 12;
+    this.ballSpeedX = 5;
+    this.ballSpeedY = 3;
   }
 
   setup() {
+    // Paddle positions
+    this.paddle1Y = this.canvas.height / 2 - this.paddleHeight / 2;
+    this.paddle2Y = this.canvas.height / 2 - this.paddleHeight / 2;
+
+    // Ball position and velocity
+    this.ballX = this.canvas.width / 2;
+    this.ballY = this.canvas.height / 2;
+    this.ballVelX = this.ballSpeedX * (Math.random() > 0.5 ? 1 : -1);
+    this.ballVelY = this.ballSpeedY * (Math.random() > 0.5 ? 1 : -1);
+
+    // Scores
+    this.playerScore = 0;
+    this.aiScore = 0;
+
+    // Keys
+    this.keys = { up: false, down: false };
+
     this.setupControls();
-    this.resetBall();
   }
 
   setupControls() {
-    // Player controls (left paddle)
-    this.addKeyHandler('w', () => { this.keys.w = true; });
-    this.addKeyHandler('s', () => { this.keys.s = true; });
-    this.addKeyHandler('ArrowUp', () => { this.keys.w = true; });
-    this.addKeyHandler('ArrowDown', () => { this.keys.s = true; });
+    this.addKeyHandler('arrowup', () => { this.keys.up = true; });
+    this.addKeyHandler('w', () => { this.keys.up = true; });
+    this.addKeyHandler('arrowdown', () => { this.keys.down = true; });
+    this.addKeyHandler('s', () => { this.keys.down = true; });
+    this.addKeyHandler(' ', () => {
+      this.isPaused ? this.resume() : this.pause();
+    });
+    this.addKeyHandler('r', () => { this.reset(); });
 
-    // Key up handlers
-    window.addEventListener('keyup', (e) => {
-      if (e.key === 'w' || e.key === 'ArrowUp') this.keys.w = false;
-      if (e.key === 's' || e.key === 'ArrowDown') this.keys.s = false;
+    // Key up handling
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'w') this.keys.up = false;
+      if (e.key === 'ArrowDown' || e.key === 's') this.keys.down = false;
     });
   }
 
-  resetBall() {
-    this.ball.x = this.canvas.width / 2;
-    this.ball.y = this.canvas.height / 2;
-
-    const angle = (Math.random() - 0.5) * Math.PI / 3;
-    const direction = Math.random() < 0.5 ? 1 : -1;
-    const speed = 5;
-
-    this.ball.speedX = Math.cos(angle) * speed * direction;
-    this.ball.speedY = Math.sin(angle) * speed;
-  }
-
   update(deltaTime) {
-    if (!this.isPlaying) return;
-
     // Player paddle movement
-    if (this.keys.w && this.leftPaddle.y > 0) {
-      this.leftPaddle.y -= this.paddleSpeed;
+    if (this.keys.up && this.paddle1Y > 0) {
+      this.paddle1Y -= this.paddleSpeed;
     }
-    if (this.keys.s && this.leftPaddle.y < this.canvas.height - this.paddleHeight) {
-      this.leftPaddle.y += this.paddleSpeed;
+    if (this.keys.down && this.paddle1Y < this.canvas.height - this.paddleHeight) {
+      this.paddle1Y += this.paddleSpeed;
     }
 
-    // AI paddle movement using AI system
-    const currentTime = Date.now();
-    if (this.ai.canAct(currentTime)) {
-      const movement = this.ai.calculatePaddleMove(
-        this.ball.y,
-        this.rightPaddle.y,
-        this.paddleHeight,
-        this.aiSpeed
-      );
-      this.rightPaddle.y += movement;
+    // AI paddle movement
+    const aiConfig = AI_LEVELS[this.aiLevel];
+    const targetY = this.ballY - this.paddleHeight / 2;
+    const diff = targetY - this.paddle2Y;
+
+    if (Math.abs(diff) > 5) {
+      const aiSpeed = this.paddleSpeed * (aiConfig.accuracy / 100);
+      if (diff > 0) {
+        this.paddle2Y += Math.min(aiSpeed, diff);
+      } else {
+        this.paddle2Y -= Math.min(aiSpeed, -diff);
+      }
     }
 
     // Keep AI paddle in bounds
-    this.rightPaddle.y = Math.max(0, Math.min(this.canvas.height - this.paddleHeight, this.rightPaddle.y));
+    this.paddle2Y = Math.max(0, Math.min(this.canvas.height - this.paddleHeight, this.paddle2Y));
 
     // Ball movement
-    this.ball.x += this.ball.speedX;
-    this.ball.y += this.ball.speedY;
+    this.ballX += this.ballVelX;
+    this.ballY += this.ballVelY;
 
-    // Top/bottom collision
-    if (this.ball.y - this.ball.radius <= 0 || this.ball.y + this.ball.radius >= this.canvas.height) {
-      this.ball.speedY *= -1;
+    // Top/bottom wall collision
+    if (this.ballY <= 0 || this.ballY >= this.canvas.height) {
+      this.ballVelY = -this.ballVelY;
+      this.ballY = Math.max(0, Math.min(this.canvas.height, this.ballY));
     }
 
-    // Left paddle collision
-    if (
-      this.ball.x - this.ball.radius <= this.leftPaddle.x + this.paddleWidth &&
-      this.ball.y >= this.leftPaddle.y &&
-      this.ball.y <= this.leftPaddle.y + this.paddleHeight
-    ) {
-      this.ball.speedX = Math.abs(this.ball.speedX);
-      this.ball.speedX *= 1.05;
-      this.score += 10;
+    // Paddle collisions
+    // Player paddle
+    if (this.ballX - this.ballSize / 2 <= 30 + this.paddleWidth &&
+      this.ballX > 30 &&
+      this.ballY >= this.paddle1Y &&
+      this.ballY <= this.paddle1Y + this.paddleHeight) {
+      this.ballVelX = Math.abs(this.ballVelX) * 1.05;
+      const hitPos = (this.ballY - this.paddle1Y) / this.paddleHeight;
+      this.ballVelY = (hitPos - 0.5) * 8;
     }
 
-    // Right paddle collision
-    if (
-      this.ball.x + this.ball.radius >= this.rightPaddle.x &&
-      this.ball.y >= this.rightPaddle.y &&
-      this.ball.y <= this.rightPaddle.y + this.paddleHeight
-    ) {
-      this.ball.speedX = -Math.abs(this.ball.speedX);
-      this.ball.speedX *= 1.05;
-      this.rightPaddle.score++;
+    // AI paddle
+    if (this.ballX + this.ballSize / 2 >= this.canvas.width - 30 - this.paddleWidth &&
+      this.ballX < this.canvas.width - 30 &&
+      this.ballY >= this.paddle2Y &&
+      this.ballY <= this.paddle2Y + this.paddleHeight) {
+      this.ballVelX = -Math.abs(this.ballVelX) * 1.05;
+      const hitPos = (this.ballY - this.paddle2Y) / this.paddleHeight;
+      this.ballVelY = (hitPos - 0.5) * 8;
     }
 
-    // Score (ball out of bounds)
-    if (this.ball.x < 0) {
-      this.rightPaddle.score++;
+    // Scoring
+    if (this.ballX < 0) {
+      this.aiScore++;
       this.resetBall();
-      if (this.rightPaddle.score >= 10) {
-        this.endGame('AI Wins! Your score: ' + this.score);
-      }
-    } else if (this.ball.x > this.canvas.width) {
-      this.leftPaddle.score++;
-      this.score += 100;
-      this.resetBall();
-      if (this.leftPaddle.score >= 10) {
-        this.endGame('You Win! Score: ' + this.score);
+      if (this.aiScore >= 5) {
+        this.endGame('AI Wins! 🤖');
       }
     }
+    if (this.ballX > this.canvas.width) {
+      this.playerScore++;
+      this.score = this.playerScore * 100;
+      this.resetBall();
+      if (this.playerScore >= 5) {
+        this.endGame('You Win! 🎉');
+      }
+    }
+  }
+
+  resetBall() {
+    this.ballX = this.canvas.width / 2;
+    this.ballY = this.canvas.height / 2;
+    this.ballVelX = this.ballSpeedX * (Math.random() > 0.5 ? 1 : -1);
+    this.ballVelY = this.ballSpeedY * (Math.random() > 0.5 ? 1 : -1);
   }
 
   render() {
     this.clearCanvas();
 
-    // Background with cartoony gradient
-    const bgGradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
-    bgGradient.addColorStop(0, '#FFF8DC');
-    bgGradient.addColorStop(1, '#FFE5B4');
+    // Background
+    const bgGradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, 0);
+    bgGradient.addColorStop(0, '#1A1A2E');
+    bgGradient.addColorStop(0.5, '#16213E');
+    bgGradient.addColorStop(1, '#1A1A2E');
     this.ctx.fillStyle = bgGradient;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Center line
-    this.ctx.strokeStyle = '#FFB347';
-    this.ctx.lineWidth = 4;
-    this.ctx.setLineDash([20, 15]);
+    this.ctx.setLineDash([10, 10]);
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    this.ctx.lineWidth = 3;
     this.ctx.beginPath();
     this.ctx.moveTo(this.canvas.width / 2, 0);
     this.ctx.lineTo(this.canvas.width / 2, this.canvas.height);
     this.ctx.stroke();
     this.ctx.setLineDash([]);
 
-    // Left paddle (player) - with rounded corners
-    this.drawRoundedRect(
-      this.leftPaddle.x,
-      this.leftPaddle.y,
-      this.paddleWidth,
-      this.paddleHeight,
-      8,
-      '#FF6B35'
-    );
-
-    // Right paddle (AI) - with rounded corners
-    this.drawRoundedRect(
-      this.rightPaddle.x,
-      this.rightPaddle.y,
-      this.paddleWidth,
-      this.paddleHeight,
-      8,
-      '#4ECDC4'
-    );
-
-    // Ball with glow
-    this.ctx.fillStyle = '#F7931E';
-    this.ctx.beginPath();
-    this.ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
+    // Player paddle (left) - teal
+    this.ctx.fillStyle = '#4ECDC4';
+    this.ctx.shadowBlur = 15;
+    this.ctx.shadowColor = '#4ECDC4';
+    this.roundRect(30, this.paddle1Y, this.paddleWidth, this.paddleHeight, 8);
     this.ctx.fill();
 
-    // Ball border
-    this.ctx.strokeStyle = '#2C3E50';
-    this.ctx.lineWidth = 3;
-    this.ctx.stroke();
+    // AI paddle (right) - orange
+    this.ctx.fillStyle = '#FF6B35';
+    this.ctx.shadowColor = '#FF6B35';
+    this.roundRect(this.canvas.width - 30 - this.paddleWidth, this.paddle2Y, this.paddleWidth, this.paddleHeight, 8);
+    this.ctx.fill();
 
-    // Ball glow
-    const gradient = this.ctx.createRadialGradient(
-      this.ball.x, this.ball.y, this.ball.radius / 2,
-      this.ball.x, this.ball.y, this.ball.radius * 2
-    );
-    gradient.addColorStop(0, 'rgba(247, 147, 30, 0.5)');
-    gradient.addColorStop(1, 'rgba(247, 147, 30, 0)');
-    this.ctx.fillStyle = gradient;
+    this.ctx.shadowBlur = 0;
+
+    // Ball
+    this.ctx.fillStyle = '#FFD93D';
+    this.ctx.shadowBlur = 20;
+    this.ctx.shadowColor = '#FFD93D';
     this.ctx.beginPath();
-    this.ctx.arc(this.ball.x, this.ball.y, this.ball.radius * 2, 0, Math.PI * 2);
+    this.ctx.arc(this.ballX, this.ballY, this.ballSize, 0, Math.PI * 2);
+    this.ctx.fill();
+    this.ctx.shadowBlur = 0;
+
+    // Ball highlight
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    this.ctx.beginPath();
+    this.ctx.arc(this.ballX - 3, this.ballY - 3, 4, 0, Math.PI * 2);
     this.ctx.fill();
 
     // Scores
-    this.ctx.fillStyle = '#2C3E50';
-    this.ctx.font = 'bold 56px "Comic Sans MS", cursive';
+    this.ctx.font = 'bold 64px "Comic Sans MS", cursive';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText(this.leftPaddle.score, this.canvas.width / 4, 70);
-    this.ctx.fillText(this.rightPaddle.score, (this.canvas.width * 3) / 4, 70);
+
+    this.ctx.fillStyle = '#4ECDC4';
+    this.ctx.fillText(this.playerScore, this.canvas.width / 4, 80);
+
+    this.ctx.fillStyle = '#FF6B35';
+    this.ctx.fillText(this.aiScore, 3 * this.canvas.width / 4, 80);
 
     // Labels
-    this.ctx.font = 'bold 18px "Comic Sans MS", cursive';
-    this.ctx.fillText('YOU', this.canvas.width / 4, 95);
+    this.ctx.font = '16px "Comic Sans MS", cursive';
+    this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.fillText('YOU', this.canvas.width / 4, 110);
+    this.ctx.fillText('AI', 3 * this.canvas.width / 4, 110);
 
-    // AI level indicator
-    const aiLevelName = AI_LEVELS[this.aiLevel].name;
-    this.ctx.fillStyle = '#4ECDC4';
-    this.ctx.fillText(`AI (${aiLevelName})`, (this.canvas.width * 3) / 4, 95);
-
-    // Total score
-    this.ctx.fillStyle = '#2C3E50';
-    this.ctx.textAlign = 'left';
-    this.ctx.font = 'bold 20px "Comic Sans MS", cursive';
-    this.ctx.fillText(`Score: ${this.score}`, 20, this.canvas.height - 20);
-
-    // Controls hint
-    this.ctx.textAlign = 'right';
+    // AI Level indicator
     this.ctx.font = '14px "Comic Sans MS", cursive';
     this.ctx.fillStyle = '#90A4AE';
-    this.ctx.fillText('W/S or ↑/↓ to move', this.canvas.width - 20, this.canvas.height - 20);
+    this.ctx.fillText(`AI Level: ${AI_LEVELS[this.aiLevel].name}`, this.canvas.width / 2, this.canvas.height - 15);
+
+    // Paused overlay
+    if (this.isPaused) {
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+      this.ctx.font = 'bold 48px "Comic Sans MS", cursive';
+      this.ctx.fillStyle = '#FFD93D';
+      this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2);
+
+      this.ctx.font = '20px "Comic Sans MS", cursive';
+      this.ctx.fillStyle = '#FFFFFF';
+      this.ctx.fillText('Press SPACE to resume', this.canvas.width / 2, this.canvas.height / 2 + 40);
+    }
   }
 
-  drawRoundedRect(x, y, width, height, radius, color) {
-    this.ctx.fillStyle = color;
+  roundRect(x, y, w, h, r) {
     this.ctx.beginPath();
-    this.ctx.moveTo(x + radius, y);
-    this.ctx.lineTo(x + width - radius, y);
-    this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    this.ctx.lineTo(x + width, y + height - radius);
-    this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    this.ctx.lineTo(x + radius, y + height);
-    this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    this.ctx.lineTo(x, y + radius);
-    this.ctx.quadraticCurveTo(x, y, x + radius, y);
+    this.ctx.moveTo(x + r, y);
+    this.ctx.lineTo(x + w - r, y);
+    this.ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    this.ctx.lineTo(x + w, y + h - r);
+    this.ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    this.ctx.lineTo(x + r, y + h);
+    this.ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    this.ctx.lineTo(x, y + r);
+    this.ctx.quadraticCurveTo(x, y, x + r, y);
     this.ctx.closePath();
-    this.ctx.fill();
-
-    // Border
-    this.ctx.strokeStyle = '#2C3E50';
-    this.ctx.lineWidth = 3;
-    this.ctx.stroke();
   }
 }
+
+export default PongGame;
