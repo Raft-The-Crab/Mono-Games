@@ -32,11 +32,12 @@
 <td width="50%">
 
 ### 🎮 Gaming Experience
-- **15+ Games** - Arcade, puzzle, racing, strategy, and more
+- **19+ Games** - Arcade, puzzle, racing, strategy, and more
+- **AI Opponents** - Local minimax AI with 5 difficulties (Easy → Impossible)
+- **Offline-First** - Works 100% offline with IndexedDB storage
 - **Chill Mode** - 4 relaxation games with NO SCORING
 - **Premium Content** - Unlock special games with diamonds
-- **AI Opponents** - 5 difficulty levels (50💎 unlock)
-- **Offline Play** - Full functionality without internet
+- **Daily Challenges** - Auto-generated, no server required
 - **3D Graphics** - Babylon.js powered immersive games
 - **Touch Controls** - Optimized for mobile and desktop
 
@@ -92,8 +93,7 @@
 - 🐍 **Snake** - Grow and survive
 - 🧱 **Tetris** - Stack and clear
 - 🏓 **Pong** - Paddle battle
-- 🧱 **Breakout** - Brick destroyer
-- 🚀 **Space Shooter** - Wave combat
+- 🧱 **Breakout** - Brick destroyer- 🐦 **Flappy Bird** - Tap to flap- 🚀 **Space Shooter** - Wave combat
 
 </td>
 <td width="33%">
@@ -102,8 +102,9 @@
 - 🔢 **2048** - Merge to win
 - 🧠 **Memory Match** - Card matching
 - 🎯 **Maze Runner** - Find the exit
-- ❌ **Tic-Tac-Toe** - Classic grid
-- 🔴 **Connect Four** - Drop strategy
+- 💣 **Minesweeper** - Classic mine finder
+- ❌ **Tic-Tac-Toe** - Classic grid (AI)
+- 🔴 **Connect Four** - Drop strategy (AI)
 
 </td>
 <td width="33%">
@@ -314,6 +315,7 @@ For detailed build instructions, see [docs/BUILD_COMMANDS.md](docs/BUILD_COMMAND
 ![Express](https://img.shields.io/badge/Express-4.21-000000?logo=express&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-7.4-DC382D?logo=redis&logoColor=white)
 ![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-010101?logo=socket.io&logoColor=white)
+![IndexedDB](https://img.shields.io/badge/IndexedDB-Offline--First-FF6B6B?logo=idb&logoColor=white)
 
 ### Database & Auth
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
@@ -374,17 +376,20 @@ For authorized developers only.
 ## 📈 Version History
 
 ### Version 2.0.0 - "Ultimate Update" (Current - January 2026)
-- 🎮 **15+ Complete Games** - Including 2 brand new games (Memory Match, Maze Runner)
+- 🎮 **19+ Complete Games** - Including Flappy Bird & Minesweeper
+- 🤖 **Local AI System** - Minimax algorithm with 5 difficulty levels (Easy → Impossible)
+- 💾 **Offline-First Storage** - IndexedDB persistence, works 100% offline
+- 📊 **Backend APIs** - Achievement tracking, stats, daily challenges
+- 🎯 **Daily Challenges** - Auto-generated challenges (no server required!)
 - 🧠 **Memory Match** - Card matching with 4 themes and 3D flip animations
 - 🎯 **Maze Runner** - Procedural mazes with minimap and collectibles
 - 🧱 **Breakout** - Classic brick-breaking with power-ups
-- 🤖 **AI Paywall** - 50💎 unlock system for AI opponents
+- 🐦 **Flappy Bird** - Tap-to-flap arcade action
+- 💣 **Minesweeper** - Classic mine detection with 4 difficulties
 - 📚 **Help Documentation** - Comprehensive 7-section FAQ system
-- 🏆 **Improved Leaderboards** - 8 competitive games tracked
-- 🎨 **Enhanced UI** - Better game selection and navigation
-- 🛠️ **Game Improvements** - All chill games now fully functional
+- 🏆 **Enhanced Stats** - Leaderboards, comparisons, game history
+- 🎨 **UI Improvements** - Category filters, achievement animations
 - 📖 **Complete Documentation** - Deployment and development guides
-- 🔧 **Backend Enhancements** - Redis caching and WebSocket support
 
 ### Version 1.5.0 - "Chill Update" (December 2025)
 - 🌙 **Zen Garden** - Peaceful gardening simulation
