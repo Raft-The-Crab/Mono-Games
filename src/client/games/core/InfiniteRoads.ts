@@ -454,35 +454,46 @@ export default class InfiniteRoads {
   private createCarModel(model: CarModel): void {
     // Body dimensions based on car type
     let bodyWidth = 2;
-    let bodyHeight = 1.2;
-    let bodyDepth = 4;
+    let bodyHeight = 0.8;
+    let bodyDepth = 4.5;
     let topWidth = 1.6;
-    let topHeight = 0.8;
-    let topDepth = 2;
+    let topHeight = 0.9;
+    let topDepth = 2.5;
     
     if (model.type === 'suv') {
-      bodyHeight = 1.5;
-      topHeight = 1.0;
-      bodyWidth = 2.2;
-    } else if (model.type === 'sports') {
-      bodyHeight = 0.9;
-      topHeight = 0.6;
-      bodyDepth = 3.5;
-    } else if (model.type === 'van') {
-      bodyHeight = 1.8;
+      bodyHeight = 1.0;
       topHeight = 1.2;
-      bodyDepth = 5;
+      bodyWidth = 2.3;
+    } else if (model.type === 'sports') {
+      bodyHeight = 0.7;
+      topHeight = 0.5;
+      bodyDepth = 4.2;
+    } else if (model.type === 'van') {
+      bodyHeight = 1.2;
+      topHeight = 1.5;
+      bodyDepth = 5.5;
     } else if (model.type === 'convertible') {
       topHeight = 0; // No roof!
     }
     
+    // Main body with detail
     const carBody = BABYLON.MeshBuilder.CreateBox('carBody', {
       width: bodyWidth,
       height: bodyHeight,
       depth: bodyDepth
     }, this.scene);
+    carBody.position.y = -0.2;
     
-    const parts: BABYLON.Mesh[] = [carBody];
+    // Hood
+    const hood = BABYLON.MeshBuilder.CreateBox('hood', {
+      width: bodyWidth * 0.95,
+      height: 0.15,
+      depth: bodyDepth * 0.33
+    }, this.scene);
+    hood.position.y = bodyHeight * 0.5 + 0.075;
+    hood.position.z = bodyDepth * 0.33;
+    
+    const parts: BABYLON.Mesh[] = [carBody, hood];
     
     if (topHeight > 0) {
       const carTop = BABYLON.MeshBuilder.CreateBox('carTop', {
@@ -491,34 +502,104 @@ export default class InfiniteRoads {
         depth: topDepth
       }, this.scene);
       carTop.position.y = bodyHeight * 0.5 + topHeight * 0.5;
-      carTop.position.z = -0.3;
+      carTop.position.z = -bodyDepth * 0.1;
       parts.push(carTop);
+      
+      // Windshield
+      const windshield = BABYLON.MeshBuilder.CreateBox('windshield', {
+        width: topWidth * 0.95,
+        height: topHeight * 0.8,
+        depth: 0.1
+      }, this.scene);
+      windshield.position.y = bodyHeight * 0.5 + topHeight * 0.5;
+      windshield.position.z = topDepth * 0.5 + 0.3;
+      windshield.rotation.x = Math.PI / 7;
+      
+      const glassMat = new BABYLON.StandardMaterial('glass', this.scene);
+      glassMat.diffuseColor = new BABYLON.Color3(0.3, 0.4, 0.5);
+      glassMat.specularColor = new BABYLON.Color3(1, 1, 1);
+      glassMat.specularPower = 256;
+      glassMat.alpha = 0.4;
+      windshield.material = glassMat;
+      parts.push(windshield);
     }
     
-    // Add spoiler for sports car
+    // Side mirrors
+    const mirrorL = BABYLON.MeshBuilder.CreateBox('mirrorL', {
+      width: 0.15,
+      height: 0.2,
+      depth: 0.3
+    }, this.scene);
+    mirrorL.position.set(-bodyWidth * 0.55, bodyHeight * 0.3, topDepth * 0.3);
+    const mirrorR = mirrorL.clone('mirrorR');
+    mirrorR.position.x = bodyWidth * 0.55;
+    parts.push(mirrorL, mirrorR);
+    
+    // Headlights
+    const headlightL = BABYLON.MeshBuilder.CreateSphere('headlightL', { diameter: 0.35 }, this.scene);
+    headlightL.position.set(-bodyWidth * 0.35, 0, bodyDepth * 0.5 - 0.05);
+    const headlightR = headlightL.clone('headlightR');
+    headlightR.position.x = bodyWidth * 0.35;
+    
+    const lightMat = new BABYLON.StandardMaterial('lights', this.scene);
+    lightMat.emissiveColor = new BABYLON.Color3(1, 1, 0.9);
+    lightMat.diffuseColor = new BABYLON.Color3(1, 1, 1);
+    headlightL.material = lightMat;
+    headlightR.material = lightMat;
+    parts.push(headlightL, headlightR);
+    
+    // Taillights
+    const taillightL = BABYLON.MeshBuilder.CreateBox('taillightL', { size: 0.3 }, this.scene);
+    taillightL.position.set(-bodyWidth * 0.35, 0, -bodyDepth * 0.5 + 0.05);
+    const taillightR = taillightL.clone('taillightR');
+    taillightR.position.x = bodyWidth * 0.35;
+    
+    const tailMat = new BABYLON.StandardMaterial('taillights', this.scene);
+    tailMat.emissiveColor = new BABYLON.Color3(0.8, 0, 0);
+    tailMat.diffuseColor = new BABYLON.Color3(1, 0, 0);
+    taillightL.material = tailMat;
+    taillightR.material = tailMat;
+    parts.push(taillightL, taillightR);
+    
+    // Grille
+    const grille = BABYLON.MeshBuilder.CreateBox('grille', {
+      width: bodyWidth * 0.75,
+      height: 0.4,
+      depth: 0.1
+    }, this.scene);
+    grille.position.y = -bodyHeight * 0.2;
+    grille.position.z = bodyDepth * 0.5 - 0.08;
+    const grilleMat = new BABYLON.StandardMaterial('grille', this.scene);
+    grilleMat.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    grille.material = grilleMat;
+    parts.push(grille);
+    
+    // Add spoiler for sports/rally cars
     if (model.type === 'sports' || model.type === 'rally') {
       const spoiler = BABYLON.MeshBuilder.CreateBox('spoiler', {
-        width: 2,
-        height: 0.1,
-        depth: 0.5
+        width: bodyWidth * 0.9,
+        height: 0.15,
+        depth: 0.6
       }, this.scene);
-      spoiler.position.y = bodyHeight + 0.5;
-      spoiler.position.z = -bodyDepth * 0.5;
+      spoiler.position.y = bodyHeight + topHeight + 0.1;
+      spoiler.position.z = -bodyDepth * 0.45;
       parts.push(spoiler);
     }
     
-    // Create wheels
+    // Create detailed wheels with rims
     const wheelPositions = [
-      { x: -bodyWidth * 0.5 - 0.1, z: bodyDepth * 0.3 },
-      { x: bodyWidth * 0.5 + 0.1, z: bodyDepth * 0.3 },
-      { x: -bodyWidth * 0.5 - 0.1, z: -bodyDepth * 0.3 },
-      { x: bodyWidth * 0.5 + 0.1, z: -bodyDepth * 0.3 }
+      { x: -bodyWidth * 0.5 - 0.05, z: bodyDepth * 0.3 },
+      { x: bodyWidth * 0.5 + 0.05, z: bodyDepth * 0.3 },
+      { x: -bodyWidth * 0.5 - 0.05, z: -bodyDepth * 0.3 },
+      { x: bodyWidth * 0.5 + 0.05, z: -bodyDepth * 0.3 }
     ];
     
     for (const pos of wheelPositions) {
+      // Tire with treads
       const wheel = BABYLON.MeshBuilder.CreateCylinder('wheel', {
-        diameter: 0.8,
-        height: 0.3
+        diameter: 0.85,
+        height: 0.4,
+        tessellation: 20
       }, this.scene);
       wheel.rotation.z = Math.PI / 2;
       wheel.position.x = pos.x;
@@ -526,23 +607,43 @@ export default class InfiniteRoads {
       wheel.position.z = pos.z;
       this.wheels.push(wheel);
       
+      // Rim (shiny metallic center)
+      const rim = BABYLON.MeshBuilder.CreateCylinder('rim', {
+        diameter: 0.5,
+        height: 0.42,
+        tessellation: 16
+      }, this.scene);
+      rim.rotation.z = Math.PI / 2;
+      rim.position.x = pos.x;
+      rim.position.y = -bodyHeight * 0.5;
+      rim.position.z = pos.z;
+      
       const wheelMat = new BABYLON.StandardMaterial('wheelMat', this.scene);
-      wheelMat.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-      wheelMat.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+      wheelMat.diffuseColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+      wheelMat.specularColor = new BABYLON.Color3(0.15, 0.15, 0.15);
+      wheelMat.specularPower = 32;
       wheel.material = wheelMat;
-      parts.push(wheel);
+      
+      const rimMat = new BABYLON.StandardMaterial('rimMat', this.scene);
+      rimMat.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.75);
+      rimMat.specularColor = new BABYLON.Color3(1, 1, 1);
+      rimMat.specularPower = 256;
+      rim.material = rimMat;
+      
+      parts.push(wheel, rim);
     }
     
-    // Car material with PBR for better graphics
+    // Car paint material with metallic finish (better than PBR for performance)
     const carMat = new BABYLON.StandardMaterial('carMat', this.scene);
     carMat.diffuseColor = model.color;
-    carMat.specularColor = new BABYLON.Color3(0.8, 0.8, 0.8);
-    carMat.specularPower = 64;
-    carMat.emissiveColor = model.color.scale(0.1);
+    carMat.specularColor = new BABYLON.Color3(1, 1, 1);
+    carMat.specularPower = 128;
+    carMat.emissiveColor = model.color.scale(0.05);
     
     carBody.material = carMat;
-    if (parts.length > 1 && parts[1].name !== 'wheel') {
-      parts[1].material = carMat;
+    hood.material = carMat;
+    if (topHeight > 0 && parts.find(p => p.name === 'carTop')) {
+      parts.find(p => p.name === 'carTop')!.material = carMat;
     }
     
     this.car = BABYLON.Mesh.MergeMeshes(
@@ -768,28 +869,58 @@ export default class InfiniteRoads {
     roadMesh.position.z = z;
     roadMesh.rotation.x = Math.PI / 2;
     
-    // Better road material with lane markings
+    // Realistic asphalt material with slight reflection
     const roadMat = new BABYLON.StandardMaterial(`roadMat_${index}`, this.scene);
-    roadMat.diffuseColor = new BABYLON.Color3(0.15, 0.15, 0.15);
-    roadMat.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
-    roadMat.specularPower = 32;
+    roadMat.diffuseColor = new BABYLON.Color3(0.12, 0.12, 0.13);
+    roadMat.specularColor = new BABYLON.Color3(0.15, 0.15, 0.15);
+    roadMat.specularPower = 64;
     roadMat.backFaceCulling = false;
     roadMesh.material = roadMat;
     
-    // Add center line
-    const centerLine = BABYLON.MeshBuilder.CreateBox(`line_${index}`, {
-      width: 0.2,
-      height: 0.05,
-      depth: this.segmentLength * 0.4
-    }, this.scene);
-    centerLine.position.x = this.roadCurve;
-    centerLine.position.y = this.roadElevation + 0.12;
-    centerLine.position.z = z;
+    // Dashed center line (multiple segments)
+    const dashCount = 8;
+    const dashLength = this.segmentLength / dashCount * 0.5;
+    const gapLength = this.segmentLength / dashCount * 0.5;
     
-    const lineMat = new BABYLON.StandardMaterial(`lineMat_${index}`, this.scene);
-    lineMat.diffuseColor = new BABYLON.Color3(1, 1, 0.9);
-    lineMat.emissiveColor = new BABYLON.Color3(0.3, 0.3, 0.2);
-    centerLine.material = lineMat;
+    for (let i = 0; i < dashCount; i++) {
+      const dash = BABYLON.MeshBuilder.CreateBox(`dash_${index}_${i}`, {
+        width: 0.15,
+        height: 0.05,
+        depth: dashLength
+      }, this.scene);
+      
+      dash.position.x = this.roadCurve;
+      dash.position.y = this.roadElevation + 0.12;
+      dash.position.z = z - this.segmentLength / 2 + i * (dashLength + gapLength) + dashLength / 2;
+      
+      const lineMat = new BABYLON.StandardMaterial(`lineMat_${index}_${i}`, this.scene);
+      lineMat.diffuseColor = new BABYLON.Color3(1, 1, 0.9);
+      lineMat.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.4);
+      lineMat.specularPower = 128;
+      dash.material = lineMat;
+      
+      this.sceneryObjects.push(dash);
+    }
+    
+    // Road edge lines (white solid)
+    for (const edgeSide of [-1, 1]) {
+      const edgeLine = BABYLON.MeshBuilder.CreateBox(`edge_${index}_${edgeSide}`, {
+        width: 0.12,
+        height: 0.05,
+        depth: this.segmentLength
+      }, this.scene);
+      
+      edgeLine.position.x = this.roadCurve + edgeSide * (this.roadWidth / 2 - 0.3);
+      edgeLine.position.y = this.roadElevation + 0.12;
+      edgeLine.position.z = z;
+      
+      const edgeMat = new BABYLON.StandardMaterial(`edgeMat_${index}_${edgeSide}`, this.scene);
+      edgeMat.diffuseColor = new BABYLON.Color3(0.95, 0.95, 0.95);
+      edgeMat.emissiveColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+      edgeLine.material = edgeMat;
+      
+      this.sceneryObjects.push(edgeLine);
+    }
     
     this.roadSegments.push({ mesh: roadMesh, curve: this.roadCurve, elevation: this.roadElevation, index });
     
@@ -814,16 +945,46 @@ export default class InfiniteRoads {
       const terrainMesh = BABYLON.MeshBuilder.CreateGround(`terrain_${index}_${side}`, {
         width: 50,
         height: this.segmentLength,
-        subdivisions: 8
+        subdivisions: 16 // More subdivisions for detail
       }, this.scene);
       
       terrainMesh.position.x = centerX + side * (this.roadWidth / 2 + 25);
       terrainMesh.position.y = centerY - 1 + Math.random() * 2;
       terrainMesh.position.z = z;
       
+      // Detailed grass material with variation
       const terrainMat = new BABYLON.StandardMaterial(`terrainMat_${index}_${side}`, this.scene);
-      terrainMat.diffuseColor = this.getBiomeColor();
+      const biomeColor = this.getBiomeColor();
+      terrainMat.diffuseColor = biomeColor;
+      terrainMat.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+      terrainMat.ambientColor = biomeColor.scale(0.7);
       terrainMesh.material = terrainMat;
+      
+      // Add grass blades/clumps as instances
+      if (this.currentBiome === 'grassland' || this.currentBiome === 'forest') {
+        const grassCount = 25;
+        for (let i = 0; i < grassCount; i++) {
+          const grass = BABYLON.MeshBuilder.CreateCylinder(`grass_${index}_${side}_${i}`, {
+            diameterTop: 0,
+            diameterBottom: 0.15,
+            height: 0.4,
+            tessellation: 3
+          }, this.scene);
+          
+          grass.position.x = terrainMesh.position.x + (Math.random() - 0.5) * 48;
+          grass.position.y = terrainMesh.position.y + 0.2;
+          grass.position.z = z + (Math.random() - 0.5) * this.segmentLength;
+          
+          const grassMat = new BABYLON.StandardMaterial(`grassMat_${i}`, this.scene);
+          grassMat.diffuseColor = new BABYLON.Color3(
+            0.15 + Math.random() * 0.15,
+            0.45 + Math.random() * 0.25,
+            0.1 + Math.random() * 0.1
+          );
+          grass.material = grassMat;
+          this.sceneryObjects.push(grass);
+        }
+      }
       
       this.terrainChunks.push({
         mesh: terrainMesh,
@@ -834,33 +995,181 @@ export default class InfiniteRoads {
 
   private generateScenery(index: number, centerX: number, centerY: number, z: number): void {
     const side = Math.random() > 0.5 ? -1 : 1;
-    const distance = this.roadWidth / 2 + Math.random() * 15 + 5;
+    const distance = this.roadWidth / 2 + Math.random() * 20 + 8;
     
-    const tree = BABYLON.MeshBuilder.CreateCylinder(`tree_${index}`, {
-      diameterTop: 0,
-      diameterBottom: 2,
-      height: 6
+    // Detailed tree trunk
+    const trunk = BABYLON.MeshBuilder.CreateCylinder(`trunk_${index}`, {
+      diameterTop: 0.4,
+      diameterBottom: 0.6,
+      height: 5,
+      tessellation: 12
     }, this.scene);
     
-    tree.position.x = centerX + side * distance;
-    tree.position.y = centerY + 3;
-    tree.position.z = z + (Math.random() - 0.5) * this.segmentLength;
+    trunk.position.x = centerX + side * distance;
+    trunk.position.y = centerY + 2.5;
+    trunk.position.z = z + (Math.random() - 0.5) * this.segmentLength * 0.8;
     
-    const treeMat = new BABYLON.StandardMaterial(`treeMat_${index}`, this.scene);
-    treeMat.diffuseColor = new BABYLON.Color3(0.1, 0.6, 0.1);
-    tree.material = treeMat;
+    // Bark texture material
+    const barkMat = new BABYLON.StandardMaterial(`bark_${index}`, this.scene);
+    barkMat.diffuseColor = new BABYLON.Color3(0.3, 0.2, 0.1);
+    barkMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    trunk.material = barkMat;
     
-    this.sceneryObjects.push(tree);
+    // Multiple layers of foliage
+    const foliageLayers = 3;
+    for (let i = 0; i < foliageLayers; i++) {
+      const foliage = BABYLON.MeshBuilder.CreateSphere(`foliage_${index}_${i}`, {
+        diameter: 4 - i * 0.5,
+        segments: 10
+      }, this.scene);
+      
+      foliage.position.x = trunk.position.x + (Math.random() - 0.5) * 0.8;
+      foliage.position.y = trunk.position.y + 3 + i * 1.5;
+      foliage.position.z = trunk.position.z + (Math.random() - 0.5) * 0.8;
+      
+      const foliageMat = new BABYLON.StandardMaterial(`leaves_${index}_${i}`, this.scene);
+      foliageMat.diffuseColor = new BABYLON.Color3(
+        0.1 + Math.random() * 0.1,
+        0.45 + Math.random() * 0.25,
+        0.08 + Math.random() * 0.08
+      );
+      foliageMat.specularColor = new BABYLON.Color3(0.2, 0.3, 0.2);
+      foliage.material = foliageMat;
+      
+      this.sceneryObjects.push(foliage);
+    }
+    
+    // Add rocks
+    if (Math.random() > 0.6) {
+      const rock = BABYLON.MeshBuilder.CreateSphere(`rock_${index}`, {
+        diameter: 0.8 + Math.random() * 1.2,
+        segments: 6
+      }, this.scene);
+      
+      rock.scaling.x = 1 + Math.random() * 0.5;
+      rock.scaling.y = 0.6 + Math.random() * 0.4;
+      rock.scaling.z = 1 + Math.random() * 0.5;
+      
+      rock.position.x = centerX + side * (distance + (Math.random() - 0.5) * 10);
+      rock.position.y = centerY - 0.3;
+      rock.position.z = z + (Math.random() - 0.5) * this.segmentLength;
+      
+      const rockMat = new BABYLON.StandardMaterial(`rock_${index}`, this.scene);
+      rockMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+      rockMat.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+      rock.material = rockMat;
+      
+      this.sceneryObjects.push(rock);
+    }
+    
+    this.sceneryObjects.push(trunk);
+    
+    // Add bushes
+    if (Math.random() > 0.7) {
+      const bush = BABYLON.MeshBuilder.CreateSphere(`bush_${index}`, {
+        diameter: 1.5,
+        segments: 8
+      }, this.scene);
+      
+      bush.scaling.y = 0.7;
+      bush.position.x = centerX + side * (distance + Math.random() * 5);
+      bush.position.y = centerY + 0.5;
+      bush.position.z = z + (Math.random() - 0.5) * this.segmentLength;
+      
+      const bushMat = new BABYLON.StandardMaterial(`bush_${index}`, this.scene);
+      bushMat.diffuseColor = new BABYLON.Color3(0.2, 0.5, 0.15);
+      bush.material = bushMat;
+      
+      this.sceneryObjects.push(bush);
+    }
+    
+    // Add guardrails (road furniture)
+    if (Math.random() > 0.7) {
+      const guardrail = BABYLON.MeshBuilder.CreateBox(`guardrail_${index}`, {
+        width: 0.1,
+        height: 0.8,
+        depth: this.segmentLength * 0.5
+      }, this.scene);
+      
+      guardrail.position.x = centerX + side * (this.roadWidth / 2 + 2);
+      guardrail.position.y = centerY + 0.4;
+      guardrail.position.z = z;
+      
+      const guardMat = new BABYLON.StandardMaterial(`guard_${index}`, this.scene);
+      guardMat.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.7);
+      guardMat.specularColor = new BABYLON.Color3(0.9, 0.9, 0.9);
+      guardMat.specularPower = 128;
+      guardrail.material = guardMat;
+      
+      this.sceneryObjects.push(guardrail);
+    }
+    
+    // Add road signs
+    if (Math.random() > 0.85) {
+      const signPost = BABYLON.MeshBuilder.CreateCylinder(`signpost_${index}`, {
+        diameter: 0.1,
+        height: 3
+      }, this.scene);
+      signPost.position.x = centerX + side * (this.roadWidth / 2 + 3);
+      signPost.position.y = centerY + 1.5;
+      signPost.position.z = z;
+      
+      const signBoard = BABYLON.MeshBuilder.CreateBox(`signboard_${index}`, {
+        width: 1,
+        height: 0.8,
+        depth: 0.1
+      }, this.scene);
+      signBoard.position.x = signPost.position.x;
+      signBoard.position.y = signPost.position.y + 1.5;
+      signBoard.position.z = signPost.position.z;
+      
+      const postMat = new BABYLON.StandardMaterial(`post_${index}`, this.scene);
+      postMat.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+      signPost.material = postMat;
+      
+      const signMat = new BABYLON.StandardMaterial(`sign_${index}`, this.scene);
+      signMat.diffuseColor = new BABYLON.Color3(0.95, 0.85, 0.1);
+      signMat.emissiveColor = new BABYLON.Color3(0.3, 0.2, 0);
+      signBoard.material = signMat;
+      
+      this.sceneryObjects.push(signPost, signBoard);
+    }
   }
 
   private generateClouds(): void {
-    for (let i = 0; i < 20; i++) {
-      const cloud = BABYLON.MeshBuilder.CreateSphere(`cloud_${i}`, {
-        diameter: 10 + Math.random() * 10
-      }, this.scene);
+    for (let i = 0; i < 30; i++) {
+      // Create cloud from multiple spheres for realistic shape
+      const cloudParts: BABYLON.Mesh[] = [];
+      const partCount = 3 + Math.floor(Math.random() * 4);
       
-      cloud.position.x = (Math.random() - 0.5) * 200;
-      cloud.position.y = 50 + Math.random() * 30;
+      for (let j = 0; j < partCount; j++) {
+        const part = BABYLON.MeshBuilder.CreateSphere(`cloud_${i}_${j}`, {
+          diameter: 8 + Math.random() * 12,
+          segments: 8
+        }, this.scene);
+        
+        part.position.x = (Math.random() - 0.5) * 200;
+        part.position.y = 50 + Math.random() * 40;
+        part.position.z = (Math.random() - 0.5) * 400;
+        
+        if (j > 0) {
+          part.position.x += cloudParts[0].position.x + (Math.random() - 0.5) * 10;
+          part.position.y += (Math.random() - 0.5) * 5;
+          part.position.z += cloudParts[0].position.z + (Math.random() - 0.5) * 10;
+        }
+        
+        const cloudMat = new BABYLON.StandardMaterial(`cloudMat_${i}_${j}`, this.scene);
+        cloudMat.diffuseColor = new BABYLON.Color3(0.95, 0.95, 1);
+        cloudMat.specularColor = new BABYLON.Color3(1, 1, 1);
+        cloudMat.alpha = 0.7 + Math.random() * 0.2;
+        cloudMat.emissiveColor = new BABYLON.Color3(0.85, 0.85, 0.9);
+        part.material = cloudMat;
+        
+        cloudParts.push(part);
+        this.clouds.push(part);
+      }
+    }
+  }
       cloud.position.z = (Math.random() - 0.5) * 500;
       
       const cloudMat = new BABYLON.StandardMaterial(`cloudMat_${i}`, this.scene);
