@@ -24,7 +24,7 @@ interface PasswordStrength {
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
-  const { setUser, setToken } = useAuthStore();
+  const { register: registerUser } = useAuthStore();
   const [formData, setFormData] = useState<FormData>({
     username: '',
     email: '',
@@ -323,16 +323,3 @@ const Register: React.FC = () => {
 };
 
 export default Register;
-        <div className="benefits-bubble cartoony-speech-bubble">
-          <strong>🎁 Free Account Benefits:</strong>
-          <ul>
-            <li>☁️ Cloud Saves</li>
-            <li>🏆 Achievements</li>
-            <li>📊 Leaderboards</li>
-            <li>👥 Friends & Chat</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}

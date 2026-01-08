@@ -15,7 +15,7 @@ interface FormData {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { setUser, setToken } = useAuthStore();
+  const { login: loginUser } = useAuthStore();
   const [formData, setFormData] = useState<FormData>({ email: '', password: '' });
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -27,17 +27,15 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/login', formData);
+      const result = await loginUser(formData.email, formData.password);
       
-      if (response.data.success) {
-        setUser(response.data.data.user);
-        setToken(response.data.data.token);
+      if (result.success) {
         navigate('/launcher');
       } else {
-        setError(response.data.message || 'Login failed');
+        setError(result.error || 'Login failed');
       }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Network error. Please try again.');
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Network error. Please try again.');
     } finally {
       setLoading(false);
     }

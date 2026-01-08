@@ -127,13 +127,6 @@ const GamePlay: React.FC = () => {
       }
     };
   }, [gameId]);
-        try {
-          gameInstanceRef.current.destroy();
-        } catch (e) { }
-        gameInstanceRef.current = null;
-      }
-    };
-  }, [gameId]);
 
   const handlePause = () => {
     if (gameInstanceRef.current) {
