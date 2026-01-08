@@ -227,15 +227,19 @@ export default class InfiniteRoads {
     // Enhanced lighting with shadows
     this.sunLight = new BABYLON.DirectionalLight(
       'sunLight',
-      new BABYLON.Vector3(-1, -2, -1),
+      new BABYLON.Vector3(-0.5, -1.5, -1),
       this.scene
     );
-    this.sunLight.intensity = 1.0;
+    this.sunLight.intensity = 1.2;
+    this.sunLight.shadowMinZ = 1;
+    this.sunLight.shadowMaxZ = 500;
     
-    // Shadow generator for realistic shadows
-    this.shadowGenerator = new BABYLON.ShadowGenerator(1024, this.sunLight);
+    // Better shadow generator
+    this.shadowGenerator = new BABYLON.ShadowGenerator(2048, this.sunLight);
     this.shadowGenerator.useBlurExponentialShadowMap = true;
-    this.shadowGenerator.blurKernel = 32;
+    this.shadowGenerator.blurKernel = 64;
+    this.shadowGenerator.depthScale = 50;
+    this.shadowGenerator.darkness = 0.4;
     
     this.hemiLight = new BABYLON.HemisphericLight(
       'hemiLight',
@@ -249,11 +253,7 @@ export default class InfiniteRoads {
       'moonLight',
       new BABYLON.Vector3(0, 50, -50),
       this.scene
-    );
-    this.moonLight.intensity = 0;
-    this.moonLight.diffuse = new BABYLON.Color3(0.7, 0.8, 1.0);
-
-    // Post-processing pipeline for better graphics
+    );AAA graphics
     this.defaultPipeline = new BABYLON.DefaultRenderingPipeline(
       'defaultPipeline',
       true,
@@ -261,20 +261,39 @@ export default class InfiniteRoads {
       [this.camera]
     );
     
-    // Enable effects (can be toggled for performance)
+    // Enhanced effects for better visuals
     this.defaultPipeline.bloomEnabled = true;
-    this.defaultPipeline.bloomThreshold = 0.8;
-    this.defaultPipeline.bloomWeight = 0.3;
-    this.defaultPipeline.bloomKernel = 64;
+    this.defaultPipeline.bloomThreshold = 0.6;
+    this.defaultPipeline.bloomWeight = 0.5;
+    this.defaultPipeline.bloomKernel = 128;
+    this.defaultPipeline.bloomScale = 0.7;
     
     this.defaultPipeline.fxaaEnabled = true;
     this.defaultPipeline.sharpenEnabled = true;
-    this.defaultPipeline.sharpen.edgeAmount = 0.3;
+    this.defaultPipeline.sharpen.edgeAmount = 0.5;
+    this.defaultPipeline.sharpen.colorAmount = 1.0;
     
-    // Depth of field for cinematic look
-    this.defaultPipeline.depthOfFieldEnabled = false; // Can enable on desktop
-    this.defaultPipeline.depthOfFieldBlurLevel = BABYLON.DepthOfFieldEffectBlurLevel.Low;
+    // Depth of field for cinematic look (slowroads.io style)
+    this.defaultPipeline.depthOfFieldEnabled = true;
+    this.defaultPipeline.depthOfFieldBlurLevel = BABYLON.DepthOfFieldEffectBlurLevel.Medium;
+    this.defaultPipeline.depthOfField.fStop = 1.4;
+    this.defaultPipeline.depthOfField.focalLength = 50;
+    this.defaultPipeline.depthOfField.focusDistance = 2000;
 
+    // Better fog f - better angles like slowroads.io
+    this.cameraViews = [
+      { name: 'Chase', alpha: -Math.PI / 2, beta: Math.PI / 3.5, radius: 18 },
+      { name: 'Close', alpha: -Math.PI / 2, beta: Math.PI / 4, radius: 12 },
+      { name: 'Aerial', alpha: -Math.PI / 2, beta: Math.PI / 2.2, radius: 35 },
+      { name: 'Cinematic', alpha: -Math.PI / 2.3, beta: Math.PI / 3.2, radius: 22
+    const skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 10000 }, this.scene);
+    const skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
+    skyboxMaterial.backFaceCulling = false;
+    skyboxMaterial.disableLighting = true;
+    skyboxMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.7, 1.0);
+    skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+    skybox.material = skyboxMaterial;
+    skybox.infiniteDistance = true
     // Fog for atmosphere
     this.scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
     this.scene.fogDensity = 0.008;
@@ -722,32 +741,59 @@ export default class InfiniteRoads {
   private generateRoadSegment(index: number): void {
     const z = index * this.segmentLength;
     
-    this.noiseOffset += 0.05;
-    const curve = Math.sin(this.noiseOffset) * 5 + Math.cos(this.noiseOffset * 0.5) * 3;
-    this.roadCurve += (curve - this.roadCurve) * 0.1;
+    // Improved Perlin-like noise for smooth curves
+    this.noiseOffset += 0.02;
+    const curve = Math.sin(this.noiseOffset * 0.8) * 15 + 
+                  Math.cos(this.noiseOffset * 0.4) * 8 +
+                  Math.sin(this.noiseOffset * 1.5) * 3;
+    this.roadCurve += (curve - this.roadCurve) * 0.08;
     
-    const elevationNoise = Math.sin(this.noiseOffset * 0.3) * 8;
-    this.roadElevation += (elevationNoise - this.roadElevation) * 0.05;
+    const elevationNoise = Math.sin(this.noiseOffset * 0.25) * 20 + 
+                          Math.cos(this.noiseOffset * 0.15) * 12;
+    this.roadElevation += (elevationNoise - this.roadElevation) * 0.03;
     
-    const roadMesh = BABYLON.MeshBuilder.CreateBox(`road_${index}`, {
+    // Create road with proper texturing
+    const roadMesh = BABYLON.MeshBuilder.CreateGround(`road_${index}`, {
       width: this.roadWidth,
-      height: 0.2,
-      depth: this.segmentLength
+      height: this.segmentLength,
+      subdivisions: 4
     }, this.scene);
     
     roadMesh.position.x = this.roadCurve;
     roadMesh.position.y = this.roadElevation;
     roadMesh.position.z = z;
+    roadMesh.rotation.x = Math.PI / 2;
     
+    // Better road material with lane markings
     const roadMat = new BABYLON.StandardMaterial(`roadMat_${index}`, this.scene);
-    roadMat.diffuseColor = index % 2 === 0 
-      ? new BABYLON.Color3(0.3, 0.3, 0.3)
-      : new BABYLON.Color3(0.35, 0.35, 0.35);
+    roadMat.diffuseColor = new BABYLON.Color3(0.15, 0.15, 0.15);
+    roadMat.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+    roadMat.specularPower = 32;
+    roadMat.backFaceCulling = false;
     roadMesh.material = roadMat;
     
+    // Add center line
+    const centerLine = BABYLON.MeshBuilder.CreateBox(`line_${index}`, {
+      width: 0.2,
+      height: 0.05,
+      depth: this.segmentLength * 0.4
+    }, this.scene);
+    centerLine.position.x = this.roadCurve;
+    centerLine.position.y = this.roadElevation + 0.12;
+    centerLine.position.z = z;
+    
+    const lineMat = new BABYLON.StandardMaterial(`lineMat_${index}`, this.scene);
+    lineMat.diffuseColor = new BABYLON.Color3(1, 1, 0.9);
+    lineMat.emissiveColor = new BABYLON.Color3(0.3, 0.3, 0.2);
+    centerLine.material = lineMat;
+    
+    this.roadSegments.push({ mesh: roadMesh, curve: this.roadCurve, elevation: this.roadElevation, index });
+    
+    // Enhanced terrain generation
     this.generateTerrain(index, this.roadCurve, this.roadElevation, z);
     
-    if (Math.random() > 0.7) {
+    // More frequent scenery
+    if (Math.random() > 0.5) {
       this.generateScenery(index, this.roadCurve, this.roadElevation, z);
     }
     

@@ -3,10 +3,11 @@
  * Handles achievement unlocks, progress tracking, and synchronization
  */
 
-const express = require('express');
+import express from 'express';
+import { authenticateToken } from '../middleware/auth.js';
+import db from '../database/db.js';
+
 const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
-const db = require('../database/db');
 
 // Achievement definitions (can be loaded from JSON)
 const ACHIEVEMENT_DEFINITIONS = [
@@ -261,4 +262,4 @@ function calculateProgress(achievement, stats) {
   }
 }
 
-module.exports = router;
+export default router;

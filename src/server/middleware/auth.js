@@ -25,3 +25,6 @@ export const auth = (req, res, next) => {
     });
   }
 };
+
+// Alias for compatibility
+export const authenticateToken = auth;
