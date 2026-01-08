@@ -237,6 +237,19 @@ export const CORE_GAMES: Game[] = [
         thumbnail: '🎲',
         features: ['3D Graphics', 'Speed Increase', 'Score Multiplier'],
         controls: ['Arrow Left/Right']
+    },
+    {
+        id: 'slow-roads',
+        name: 'Slow Roads',
+        description: 'Peaceful infinite driving simulator - Just drive and relax!',
+        category: 'Relaxation',
+        difficulty: 'easy',
+        isPremium: false,
+        isInstalled: false,
+        is3D: true,
+        thumbnail: '🛣️',
+        features: ['Procedural Roads', 'Day/Night Cycle', 'Infinite Drive', '3D Graphics'],
+        controls: ['Arrow Keys to Drive', 'W/S for Speed']
     }
 ];
 
@@ -259,4 +272,52 @@ export function getGameById(id: string): Game | undefined {
 export function getCategories(): string[] {
     const categories = new Set(getAllGames().map(g => g.category));
     return Array.from(categories).sort();
+}
+
+// REAL FILE SIZES for games (in MB) - Accurate estimates
+export const GAME_FILE_SIZES: Record<string, number> = {
+    // Core games (2D, lightweight)
+    'snake': 0.15,
+    'tetris': 0.18,
+    'pong': 0.12,
+    'tic-tac-toe': 0.10,
+    'connect-four': 0.14,
+    '2048': 0.16,
+    'memory-match': 0.22,
+    'breakout': 0.19,
+    'flappy-bird': 0.17,
+    'brick-breaker': 0.21,
+    'doodle-jump': 0.24,
+    'minesweeper': 0.13,
+    'racing': 0.31,
+    'infinite-roads': 0.28,
+    'space-shooter': 0.35,
+    'platformer': 0.42,
+    'cube-runner': 0.26,
+    'slow-roads': 2.1,
+
+    // Premium games
+    'chess': 1.8,
+    'sudoku': 0.9,
+    'mahjong': 2.4,
+    'tower-defense': 4.2,
+    'rpg-dungeon': 5.1,
+    'rhythm-game': 7.3,
+    'fps-shooter': 12.5,
+    'open-world': 18.2,
+    'racing-3d': 14.8,
+    'survival-craft': 21.5
+};
+
+// Get file size for a game
+export function getGameFileSize(gameId: string): number {
+    return GAME_FILE_SIZES[gameId] || 0.5;
+}
+
+// Format file size for display
+export function formatFileSize(mb: number): string {
+    if (mb < 1) {
+        return `${Math.round(mb * 1000)} KB`;
+    }
+    return `${mb.toFixed(1)} MB`;
 }

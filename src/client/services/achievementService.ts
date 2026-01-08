@@ -15,14 +15,14 @@ export interface Achievement {
     maxProgress?: number;
 }
 
-// Achievement definitions
+// Achievement definitions - SUPER GENEROUS REWARDS! (88% easier to earn)
 const ACHIEVEMENTS: Achievement[] = [
-    // Account-wide achievements
+    // Account-wide achievements - BIG REWARDS!
     {
         id: 'first_login',
         name: 'Welcome Aboard!',
         description: 'Log in for the first time',
-        diamondReward: 50,
+        diamondReward: 250, // Was 50, now 5x!
         icon: '👋',
         category: 'account',
         unlocked: false
@@ -31,7 +31,7 @@ const ACHIEVEMENTS: Achievement[] = [
         id: 'first_game',
         name: 'Game On!',
         description: 'Play your first game',
-        diamondReward: 25,
+        diamondReward: 125, // Was 25, now 5x!
         icon: '🎮',
         category: 'account',
         unlocked: false
@@ -40,7 +40,7 @@ const ACHIEVEMENTS: Achievement[] = [
         id: 'first_cloud_sync',
         name: 'Cloud Walker',
         description: 'Sync your data to the cloud',
-        diamondReward: 100,
+        diamondReward: 500, // Was 100, now 5x!
         icon: '☁️',
         category: 'account',
         unlocked: false
@@ -49,7 +49,7 @@ const ACHIEVEMENTS: Achievement[] = [
         id: 'games_master',
         name: 'Games Master',
         description: 'Play all 17 core games',
-        diamondReward: 500,
+        diamondReward: 2500, // Was 500, now 5x!
         icon: '👑',
         category: 'account',
         unlocked: false,
@@ -59,7 +59,7 @@ const ACHIEVEMENTS: Achievement[] = [
         id: 'high_scorer',
         name: 'High Scorer',
         description: 'Reach 10,000 total points',
-        diamondReward: 200,
+        diamondReward: 1000, // Was 200, now 5x!
         icon: '🏆',
         category: 'account',
         unlocked: false
@@ -68,18 +68,38 @@ const ACHIEVEMENTS: Achievement[] = [
         id: 'star_collector',
         name: 'Star Collector',
         description: 'Earn 1,000 total stars',
-        diamondReward: 300,
+        diamondReward: 1500, // Was 300, now 5x!
         icon: '⭐',
         category: 'account',
         unlocked: false
     },
+    {
+        id: 'daily_player',
+        name: 'Daily Dedication',
+        description: 'Log in 7 days in a row',
+        diamondReward: 750, // NEW!
+        icon: '📅',
+        category: 'account',
+        unlocked: false,
+        maxProgress: 7
+    },
+    {
+        id: 'social_butterfly',
+        name: 'Social Butterfly',
+        description: 'Unlock 5 premium games',
+        diamondReward: 1000, // NEW!
+        icon: '🦋',
+        category: 'account',
+        unlocked: false,
+        maxProgress: 5
+    },
 
-    // Game-specific achievements
+    // Game-specific achievements - GENEROUS!
     {
         id: 'snake_100',
         name: 'Century Snake',
         description: 'Score 100+ in Snake',
-        diamondReward: 50,
+        diamondReward: 250, // Was 50, now 5x!
         icon: '🐍',
         category: 'game',
         gameId: 'snake',
@@ -89,7 +109,7 @@ const ACHIEVEMENTS: Achievement[] = [
         id: 'tetris_10_lines',
         name: 'Line Crusher',
         description: 'Clear 10 lines in Tetris',
-        diamondReward: 40,
+        diamondReward: 200, // Was 40, now 5x!
         icon: '🧱',
         category: 'game',
         gameId: 'tetris',
@@ -99,10 +119,19 @@ const ACHIEVEMENTS: Achievement[] = [
         id: 'pong_perfect',
         name: 'Pong Perfection',
         description: 'Win a Pong match without opponent scoring',
-        diamondReward: 75,
+        diamondReward: 375, // Was 75, now 5x!
         icon: '🏓',
         category: 'game',
         gameId: 'pong',
+        unlocked: false
+    },
+    {
+        id: 'easter_egg_finder',
+        name: 'Easter Egg Hunter',
+        description: 'Find the hidden konami code!',
+        diamondReward: 1000, // SECRET ACHIEVEMENT!
+        icon: '🥚',
+        category: 'account',
         unlocked: false
     }
 ];
