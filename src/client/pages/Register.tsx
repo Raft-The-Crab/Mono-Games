@@ -7,29 +7,43 @@ import {
   GamepadIcon, EmailIcon, LockIcon, EyeIcon, EyeOffIcon,
   AlertIcon, CloudIcon, SparklesIcon, PlayIcon, UserIcon, TrophyIcon, CheckIcon
 } from '../components/Icons';
+import type React from 'react';
 
-export default function Register() {
+interface FormData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface PasswordStrength {
+  isValid: boolean;
+  strength: string;
+  score: number;
+}
+
+const Register: React.FC = () => {
   const navigate = useNavigate();
   const { setUser, setToken } = useAuthStore();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     username: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength | null>(null);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [agreedToTerms, setAgreedToTerms] = useState<boolean>(false);
 
-  const handlePasswordChange = (password) => {
+  const handlePasswordChange = (password: string) => {
     setFormData({ ...formData, password });
     const validation = validatePassword(password);
     setPasswordStrength(validation);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -286,6 +300,29 @@ export default function Register() {
         </div>
 
         {/* Benefits bubble */}
+        <div className="benefits-bubble">
+          <h4 className="cartoony-h4">Join Mono Games! 🎮</h4>
+          <ul className="benefits-list">
+            <li><CheckIcon size={16} /> Cloud Saves</li>
+            <li><CheckIcon size={16} /> Achievements</li>
+            <li><CheckIcon size={16} /> Leaderboards</li>
+            <li><CheckIcon size={16} /> Friends System</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Decorative elements */}
+      <div className="doodle-star doodle-1">⭐</div>
+      <div className="doodle-star doodle-2">✨</div>
+      <div className="doodle-star doodle-3">💫</div>
+      <div className="doodle-cloud cloud-1">☁️</div>
+      <div className="doodle-cloud cloud-2">☁️</div>
+      <div className="floating-trophy"><TrophyIcon size={64} /></div>
+    </div>
+  );
+};
+
+export default Register;
         <div className="benefits-bubble cartoony-speech-bubble">
           <strong>🎁 Free Account Benefits:</strong>
           <ul>

@@ -29,12 +29,14 @@ function Settings() {
   ];
 
   const themes = [
-    { id: 'light', name: 'Light', icon: SunIcon, primary: '#FF6B35', bg: '#FFF8DC' },
-    { id: 'dark', name: 'Dark', icon: MoonIcon, primary: '#FF6B35', bg: '#1A1A2E' },
-    { id: 'ocean', name: 'Ocean', icon: PaletteIcon, primary: '#4ECDC4', bg: '#E8F6F3' },
-    { id: 'sunset', name: 'Sunset', icon: PaletteIcon, primary: '#E63946', bg: '#FFF0F0' },
-    { id: 'forest', name: 'Forest', icon: PaletteIcon, primary: '#2D6A4F', bg: '#F0F7F4' },
-    { id: 'purple', name: 'Purple', icon: PaletteIcon, primary: '#7B2CBF', bg: '#F5F0FF' }
+    { id: 'light', name: 'Light', icon: SunIcon, primary: '#FF6B35', bg: '#FFF8DC', desc: 'Bright and cheerful' },
+    { id: 'dark', name: 'Dark', icon: MoonIcon, primary: '#FF6B35', bg: '#1A1A2E', desc: 'Easy on the eyes' },
+    { id: 'ocean', name: 'Ocean', icon: PaletteIcon, primary: '#4ECDC4', bg: '#E8F6F3', desc: 'Cool and calm' },
+    { id: 'sunset', name: 'Sunset', icon: PaletteIcon, primary: '#E63946', bg: '#FFF0F0', desc: 'Warm and cozy' },
+    { id: 'forest', name: 'Forest', icon: PaletteIcon, primary: '#2D6A4F', bg: '#F0F7F4', desc: 'Natural vibes' },
+    { id: 'purple', name: 'Purple', icon: PaletteIcon, primary: '#7B2CBF', bg: '#F5F0FF', desc: 'Mystic energy' },
+    { id: 'retro', name: 'Retro', icon: PaletteIcon, primary: '#00FF00', bg: '#0A0A0A', desc: 'Classic terminal' },
+    { id: 'neon', name: 'Neon', icon: PaletteIcon, primary: '#FF00FF', bg: '#0D0221', desc: 'Cyberpunk style' }
   ];
 
   // Apply theme when it changes

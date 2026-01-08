@@ -2,21 +2,40 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#1a1a2e" />
-    <meta name="description" content="Mono Games - Cross-platform gaming platform with 50+ games. Play online or offline on Windows, Android, and Web." />
-    <meta name="keywords" content="games, gaming platform, online games, offline games, retro games, arcade" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#1a1a2e" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FFB347" media="(prefers-color-scheme: light)" />
+    <meta name="description" content="Play 50+ games right in your browser. Retro classics, puzzles, and 3D games. Works offline too." />
+    <meta name="keywords" content="games, online games, browser games, retro games, arcade, puzzle games, free games, offline games" />
+    <meta name="author" content="Mono Games" />
+    <meta name="robots" content="index, follow" />
     
-    <!-- Open Graph -->
-    <meta property="og:title" content="Mono Games - 50+ Games in One Platform" />
-    <meta property="og:description" content="Cross-platform gaming platform. Play anywhere, anytime." />
+    <!-- Enhanced Open Graph -->
+    <meta property="og:title" content="Mono Games - 50+ Games" />
+    <meta property="og:description" content="Free browser games. Snake, Tetris, 3D racers and more. No downloads needed." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://monogames.app" />
     <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     
-    <!-- PWA -->
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Mono Games" />
+    <meta name="twitter:description" content="50+ free browser games. Play now, no downloads." />
+    <meta name="twitter:image" content="/og-image.png" />
+    
+    <!-- PWA Enhanced -->
     <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" type="image/png" href="/icons/icon-512.png" />
-    <link rel="apple-touch-icon" href="/icons/icon-512.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-512.png" />
+    <link rel="apple-touch-icon-precomposed" href="/icons/icon-512.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Mono Games" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Mono Games" />
     
     <!-- Preload critical resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -23,7 +23,7 @@ const GamePlay: React.FC = () => {
   const navigate = useNavigate();
   const gameInstanceRef = useRef<GameInstance | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const initCalled = useRef<boolean>(false);
+  const isInitializing = useRef<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [gameInfo, setGameInfo] = useState<GameInfo>({ score: 0, highScore: 0 });
@@ -31,9 +31,12 @@ const GamePlay: React.FC = () => {
 
   useEffect(() => {
     // Prevent double initialization in React StrictMode
-    if (initCalled.current) return;
-    initCalled.current = true;
-
+    if (isInitializing.current) {
+      console.log('[GamePlay] Already initializing, skipping...');
+      return;
+    }
+    
+    isInitializing.current = true;
     let mounted = true;
     let scoreInterval: NodeJS.Timeout | null = null;
 
@@ -43,37 +46,49 @@ const GamePlay: React.FC = () => {
         setIsLoading(true);
         setError(null);
 
-        // Wait for container to be available
-        await new Promise(resolve => setTimeout(resolve, 50));
-
-        if (!containerRef.current || !mounted) {
-          console.log('[GamePlay] Container or component not available');
-          return;
-        }
-
-        // Load game class
-        console.log('[GamePlay] Loading game class...');
-        const GameClass = await loadGame(gameId);
-        console.log('[GamePlay] Game class loaded:', GameClass);
+        // Wait a bit for React to finish rendering
+        await new Promise(resolve => setTimeout(resolve, 150));
 
         if (!mounted) {
           console.log('[GamePlay] Component unmounted before init');
           return;
         }
 
+        // Check if container exists
+        const container = containerRef.current;
+        if (!container) {
+          console.error('[GamePlay] Container ref is null after wait!');
+          setError('Game container failed to initialize');
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('[GamePlay] Container found, loading game class...');
+        
+        // Load game class
+        const GameClass = await loadGame(gameId);
+        console.log('[GamePlay] Game class loaded');
+
+        if (!mounted) {
+          console.log('[GamePlay] Component unmounted after loading');
+          return;
+        }
+
         // Set container ID
-        containerRef.current.id = 'game-container';
+        container.id = 'game-container';
 
         // Initialize game
         console.log('[GamePlay] Creating game instance...');
         const game = new GameClass('game-container');
-        console.log('[GamePlay] Calling game.init()...');
+        
+        console.log('[GamePlay] Initializing game...');
         game.init();
-        console.log('[GamePlay] Calling game.start()...');
+        
+        console.log('[GamePlay] Starting game...');
         game.start();
 
         gameInstanceRef.current = game;
-        console.log('[GamePlay] Game initialization complete!');
+        console.log('[GamePlay] ✅ Game ready!');
         setIsLoading(false);
 
         // Poll for score updates
@@ -87,7 +102,7 @@ const GamePlay: React.FC = () => {
         }, 100);
 
       } catch (err: any) {
-        console.error('Failed to load game:', err);
+        console.error('❌ Failed to load game:', err);
         if (mounted) {
           setError(err?.message || 'Failed to load game');
           setIsLoading(false);
@@ -98,9 +113,20 @@ const GamePlay: React.FC = () => {
     initGame();
 
     return () => {
+      console.log('[GamePlay] Cleanup');
       mounted = false;
+      isInitializing.current = false;
       if (scoreInterval) clearInterval(scoreInterval);
       if (gameInstanceRef.current) {
+        try {
+          gameInstanceRef.current.destroy();
+        } catch (e) {
+          console.warn('[GamePlay] Error during game cleanup:', e);
+        }
+        gameInstanceRef.current = null;
+      }
+    };
+  }, [gameId]);
         try {
           gameInstanceRef.current.destroy();
         } catch (e) { }

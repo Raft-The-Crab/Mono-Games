@@ -117,6 +117,8 @@ class AudioManager {
    * Load and play background music
    */
   async playMusic(url, options = {}) {
+    if (!url) return; // Skip if no URL provided
+    
     this.stopMusic();
 
     const {
@@ -288,15 +290,28 @@ class AudioManager {
 // Create singleton instance
 const audioManager = new AudioManager();
 
+// Background music tracks (disabled - add your own music files)
+export const MusicTracks = {
+  menu: null,
+  gameplay: null,
+  victory: null,
+  arcade: null
+};
+
 // Export ready-to-use sound effects generators
 export const Sounds = {
   // Game event sounds
   jump: () => audioManager.playTone(400, 0.1, 'square'),
+  doubleJump: () => audioManager.playTone(500, 0.08, 'triangle'),
   collect: () => audioManager.playMelody([
     { frequency: 523, duration: 0.05 },
     { frequency: 659, duration: 0.05 },
     { frequency: 784, duration: 0.1 }
   ], 50),
+  coin: () => audioManager.playMelody([
+    { frequency: 988, duration: 0.05 },
+    { frequency: 1319, duration: 0.1 }
+  ], 30),
   powerUp: () => audioManager.playMelody([
     { frequency: 392, duration: 0.1 },
     { frequency: 523, duration: 0.1 },
@@ -304,10 +319,16 @@ export const Sounds = {
     { frequency: 784, duration: 0.2 }
   ], 100),
   hit: () => audioManager.playTone(100, 0.2, 'sawtooth'),
+  hurt: () => audioManager.playTone(200, 0.15, 'triangle'),
   explosion: () => {
     audioManager.playTone(100, 0.3, 'sawtooth');
     setTimeout(() => audioManager.playTone(50, 0.2, 'square'), 100);
   },
+  shoot: () => audioManager.playTone(220, 0.08, 'square'),
+  laser: () => audioManager.playMelody([
+    { frequency: 1000, duration: 0.03 },
+    { frequency: 500, duration: 0.05 }
+  ], 20),
   win: () => audioManager.playMelody([
     { frequency: 523, duration: 0.2 },
     { frequency: 659, duration: 0.2 },
@@ -319,13 +340,30 @@ export const Sounds = {
     { frequency: 330, duration: 0.3 },
     { frequency: 262, duration: 0.5 }
   ], 200),
+  levelUp: () => audioManager.playMelody([
+    { frequency: 523, duration: 0.1 },
+    { frequency: 659, duration: 0.1 },
+    { frequency: 784, duration: 0.1 },
+    { frequency: 1047, duration: 0.15 },
+    { frequency: 1319, duration: 0.2 }
+  ], 80),
   click: () => audioManager.playTone(800, 0.05, 'square'),
+  hover: () => audioManager.playTone(600, 0.03, 'sine'),
+  select: () => audioManager.playTone(1000, 0.06, 'triangle'),
   countdown: () => audioManager.playTone(600, 0.1, 'sine'),
+  go: () => audioManager.playTone(800, 0.15, 'square'),
   start: () => audioManager.playMelody([
     { frequency: 523, duration: 0.1 },
     { frequency: 659, duration: 0.1 },
     { frequency: 784, duration: 0.2 }
-  ], 80)
+  ], 80),
+  pause: () => audioManager.playTone(440, 0.1, 'sine'),
+  resume: () => audioManager.playTone(660, 0.1, 'sine'),
+  checkpoint: () => audioManager.playMelody([
+    { frequency: 659, duration: 0.1 },
+    { frequency: 784, duration: 0.1 },
+    { frequency: 988, duration: 0.15 }
+  ], 70)
 };
 
 export default audioManager;

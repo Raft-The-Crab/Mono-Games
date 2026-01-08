@@ -1,0 +1,18 @@
+{
+  "id": "doodle-jump",
+  "name": "Doodle Jump",
+  "version": "1.0.0",
+  "description": "Jump on platforms, reach new heights!",
+  "category": "arcade",
+  "renderer": "canvas2d",
+  "multiplayer": false,
+  "installed": true,
+  "size": "0.6MB",
+  "rating": 4.7,
+  "difficulty": "easy",
+  "controls": {
+    "keyboard": ["Arrow Keys", "A/D"],
+    "mouse": [],
+    "touch": ["Tilt"]
+  }
+}

@@ -97,6 +97,22 @@ export const loadGame = async (gameId) => {
         const module = await import('../games/core/breakout/index.js');
         return module.default;
       }
+      case 'flappy-bird': {
+        const module = await import('../games/core/flappy-bird/index.js');
+        return module.default;
+      }
+      case 'brick-breaker': {
+        const module = await import('../games/core/brick-breaker/index.js');
+        return module.default;
+      }
+      case 'doodle-jump': {
+        const module = await import('../games/core/doodle-jump/index.js');
+        return module.default;
+      }
+      case 'minesweeper': {
+        const module = await import('../games/core/minesweeper/index.js');
+        return module.default;
+      }
       case 'racing': {
         const module = await import('../games/core/racing/index.js');
         return module.default;

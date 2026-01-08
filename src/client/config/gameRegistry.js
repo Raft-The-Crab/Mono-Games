@@ -86,6 +86,45 @@ export const GAME_REGISTRY = [
     rating: 4.4
   },
   {
+    id: 'flappy-bird',
+    name: 'Flappy Bird',
+    category: GAME_CATEGORIES.ARCADE,
+    renderer: RENDERER_TYPES.CANVAS_2D,
+    multiplayer: false,
+    description: 'Tap to flap through pipes!',
+    difficulty: 'medium',
+    installed: true,
+    size: '0.4MB',
+    rating: 4.6,
+    new: true
+  },
+  {
+    id: 'brick-breaker',
+    name: 'Brick Breaker',
+    category: GAME_CATEGORIES.ARCADE,
+    renderer: RENDERER_TYPES.CANVAS_2D,
+    multiplayer: false,
+    description: 'Break bricks, advance levels!',
+    difficulty: 'medium',
+    installed: true,
+    size: '0.5MB',
+    rating: 4.5,
+    new: true
+  },
+  {
+    id: 'doodle-jump',
+    name: 'Doodle Jump',
+    category: GAME_CATEGORIES.ARCADE,
+    renderer: RENDERER_TYPES.CANVAS_2D,
+    multiplayer: false,
+    description: 'Jump on platforms, reach new heights!',
+    difficulty: 'easy',
+    installed: true,
+    size: '0.6MB',
+    rating: 4.7,
+    new: true
+  },
+  {
     id: 'memory-match',
     name: 'Memory Match',
     category: GAME_CATEGORIES.PUZZLE,
@@ -96,6 +135,19 @@ export const GAME_REGISTRY = [
     installed: true,
     size: '0.5MB',
     rating: 4.2
+  },
+  {
+    id: 'minesweeper',
+    name: 'Minesweeper',
+    category: GAME_CATEGORIES.PUZZLE,
+    renderer: RENDERER_TYPES.CANVAS_2D,
+    multiplayer: false,
+    description: 'Classic mine detection puzzle',
+    difficulty: 'medium',
+    installed: true,
+    size: '0.5MB',
+    rating: 4.6,
+    new: true
   },
   {
     id: 'tic-tac-toe',

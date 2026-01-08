@@ -1,5 +1,5 @@
 /**
- * Base Game Class - Simplified and Working Version
+ * Base Game Class - Enhanced Version with Audio Support
  * All games should extend this class for consistent behavior
  */
 class BaseGame {
@@ -25,7 +25,12 @@ class BaseGame {
 
     // Key handlers
     this.keyHandlers = {};
-    this.boundKeyHandler = this.handleKeyPress.bind(this);
+    this.keysPressed = new Set();
+    this.boundKeyDownHandler = this.handleKeyDown.bind(this);
+    this.boundKeyUpHandler = this.handleKeyUp.bind(this);
+    
+    // Audio support
+    this.soundEnabled = true;
   }
 
   /**
@@ -54,7 +59,8 @@ class BaseGame {
     this.ctx = this.canvas.getContext('2d');
 
     // Setup input
-    document.addEventListener('keydown', this.boundKeyHandler);
+    document.addEventListener('keydown', this.boundKeyDownHandler);
+    document.addEventListener('keyup', this.boundKeyUpHandler);
 
     // Run setup
     this.setup();
@@ -66,12 +72,23 @@ class BaseGame {
     // Override in child class
   }
 
-  handleKeyPress(e) {
+  handleKeyDown(e) {
     const key = e.key.toLowerCase();
+    this.keysPressed.add(key);
+    
     if (this.keyHandlers[key]) {
       e.preventDefault();
       this.keyHandlers[key]();
     }
+  }
+
+  handleKeyUp(e) {
+    const key = e.key.toLowerCase();
+    this.keysPressed.delete(key);
+  }
+
+  isKeyPressed(key) {
+    return this.keysPressed.has(key.toLowerCase());
   }
 
   addKeyHandler(key, handler) {
@@ -176,10 +193,69 @@ class BaseGame {
 
   destroy() {
     this.stop();
-    document.removeEventListener('keydown', this.boundKeyHandler);
-    if (this.canvas && this.canvas.parentNode) {
-      this.canvas.parentNode.removeChild(this.canvas);
+    document.removeEventListener('keydown', this.boundKeyDownHandler);
+    document.removeEventListener('keyup', this.boundKeyUpHandler);
+    
+    // Safely remove canvas
+    if (this.canvas) {
+      try {
+        if (this.canvas.parentNode) {
+          this.canvas.parentNode.removeChild(this.canvas);
+        }
+      } catch (e) {
+        console.warn('Canvas removal error (safe to ignore):', e.message);
+      }
+      this.canvas = null;
     }
+    this.ctx = null;
+  }
+  
+  // Drawing utilities
+  drawText(text, x, y, options = {}) {
+    const {
+      font = '24px Arial',
+      color = '#FFFFFF',
+      align = 'center',
+      baseline = 'middle',
+      strokeColor = null,
+      strokeWidth = 0
+    } = options;
+    
+    this.ctx.save();
+    this.ctx.font = font;
+    this.ctx.fillStyle = color;
+    this.ctx.textAlign = align;
+    this.ctx.textBaseline = baseline;
+    
+    if (strokeColor && strokeWidth > 0) {
+      this.ctx.strokeStyle = strokeColor;
+      this.ctx.lineWidth = strokeWidth;
+      this.ctx.strokeText(text, x, y);
+    }
+    
+    this.ctx.fillText(text, x, y);
+    this.ctx.restore();
+  }
+  
+  drawRect(x, y, width, height, color) {
+    this.ctx.fillStyle = color;
+    this.ctx.fillRect(x, y, width, height);
+  }
+  
+  drawCircle(x, y, radius, color) {
+    this.ctx.fillStyle = color;
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+    this.ctx.fill();
+  }
+  
+  drawLine(x1, y1, x2, y2, color, width = 1) {
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = width;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x1, y1);
+    this.ctx.lineTo(x2, y2);
+    this.ctx.stroke();
   }
 }
 

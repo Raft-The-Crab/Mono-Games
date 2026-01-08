@@ -1,0 +1,18 @@
+{
+  "id": "flappy-bird",
+  "name": "Flappy Bird",
+  "version": "1.0.0",
+  "description": "Tap to flap through pipes!",
+  "category": "arcade",
+  "renderer": "canvas2d",
+  "multiplayer": false,
+  "installed": true,
+  "size": "0.4MB",
+  "rating": 4.6,
+  "difficulty": "medium",
+  "controls": {
+    "keyboard": ["Space", "Arrow Up", "W"],
+    "mouse": ["Click"],
+    "touch": ["Tap"]
+  }
+}

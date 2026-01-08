@@ -1,0 +1,18 @@
+{
+  "id": "brick-breaker",
+  "name": "Brick Breaker",
+  "version": "1.0.0",
+  "description": "Break bricks, advance levels!",
+  "category": "arcade",
+  "renderer": "canvas2d",
+  "multiplayer": false,
+  "installed": true,
+  "size": "0.5MB",
+  "rating": 4.5,
+  "difficulty": "medium",
+  "controls": {
+    "keyboard": ["Arrow Keys", "A/D", "Space to launch"],
+    "mouse": [],
+    "touch": []
+  }
+}

@@ -12,7 +12,7 @@ const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY || 'mono-games-defaul
 /**
  * Encrypt data using AES-256
  */
-export const encrypt = (data) => {
+export const encrypt = (data: any): string | null => {
   try {
     const jsonString = JSON.stringify(data);
     const encrypted = CryptoJS.AES.encrypt(jsonString, ENCRYPTION_KEY).toString();
@@ -26,7 +26,7 @@ export const encrypt = (data) => {
 /**
  * Decrypt AES-256 encrypted data
  */
-export const decrypt = (encryptedData) => {
+export const decrypt = (encryptedData: string): any => {
   try {
     const decrypted = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY);
     const jsonString = decrypted.toString(CryptoJS.enc.Utf8);
@@ -42,7 +42,7 @@ export const decrypt = (encryptedData) => {
 /**
  * Generate SHA-256 hash
  */
-export const hash = (data) => {
+export const hash = (data: any): string => {
   const jsonString = typeof data === 'string' ? data : JSON.stringify(data);
   return CryptoJS.SHA256(jsonString).toString();
 };
@@ -97,7 +97,7 @@ export const sanitizeHTML = (html) => {
 /**
  * Validate email format
  */
-export const isValidEmail = (email) => {
+export const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
@@ -105,7 +105,7 @@ export const isValidEmail = (email) => {
 /**
  * Validate username (alphanumeric, 3-20 chars)
  */
-export const isValidUsername = (username) => {
+export const isValidUsername = (username: string): boolean => {
   const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
   return usernameRegex.test(username);
 };
@@ -113,7 +113,7 @@ export const isValidUsername = (username) => {
 /**
  * Validate password strength
  */
-export const validatePassword = (password) => {
+export const validatePassword = (password: string): { isValid: boolean; strength: string; score: number } => {
   const minLength = 8;
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);

@@ -1,0 +1,18 @@
+{
+  "id": "minesweeper",
+  "name": "Minesweeper",
+  "version": "1.0.0",
+  "description": "Classic mine detection puzzle",
+  "category": "puzzle",
+  "renderer": "canvas2d",
+  "multiplayer": false,
+  "installed": true,
+  "size": "0.5MB",
+  "rating": 4.6,
+  "difficulty": "medium",
+  "controls": {
+    "keyboard": ["R to restart"],
+    "mouse": ["Left click: Reveal", "Right click: Flag"],
+    "touch": ["Tap: Reveal", "Long press: Flag"]
+  }
+}

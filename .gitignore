@@ -10,11 +10,17 @@ node_modules/
 .yarn/
 .pnpm-store/
 package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Testing
 coverage/
 *.lcov
 .nyc_output/
+.jest/
+__tests__/
+test-results/
+playwright-report/
 
 # Production builds
 dist/
@@ -27,6 +33,7 @@ out/
 *.aab
 *.bundle.js
 *.chunk.js
+*.map
 
 # Environment variables & Secrets (CRITICAL - NEVER COMMIT)
 .env
@@ -48,9 +55,11 @@ src/server/.env
 **/api-keys.json
 **/credentials.json
 **/secrets.js
+**/secrets.json
 supabase-key.txt
 jwt-secret.txt
 github-token.txt
+firebase-key.json
 
 # Logs
 logs/
@@ -60,13 +69,17 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 pnpm-debug.log*
+.turbo/
 
 # OS files
 .DS_Store
 Thumbs.db
 desktop.ini
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 
-# IDE
+# IDE & Editors
 .vscode/
 .idea/
 *.swp
@@ -75,11 +88,14 @@ desktop.ini
 .project
 .settings/
 .classpath
+*.sublime-*
+.history/
 
 # Electron
 src/desktop/dist/
 src/desktop/out/
 release/
+app/dist/
 
 # Android
 src/mobile/android/app/release/
@@ -89,15 +105,25 @@ src/mobile/android/local.properties
 src/mobile/android/build/
 *.keystore
 *.jks
+*.hprof
 
 # Temporary files
 *.tmp
 *.temp
 .cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist/
 
 # Package manager
 .npm
 .yarn
+.eslintcache
+
+# Debug
+debug/
+*.debug
 .pnpm-store
 
 # Service worker
