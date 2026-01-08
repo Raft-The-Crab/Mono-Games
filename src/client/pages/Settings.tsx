@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import useSettingsStore from '../store/settingsStore';
+import achievementService from '../services/achievementService';
 import {
   GamepadIcon, RobotIcon, VolumeIcon, PaletteIcon,
-  SettingsIcon, SaveIcon, SunIcon, MoonIcon, CheckIcon
+  SettingsIcon, SaveIcon, SunIcon, MoonIcon, CheckIcon, LockIcon
 } from '../components/Icons';
 import '../styles/cartoony-theme.css';
 import '../styles/decorations.css';
@@ -11,6 +12,15 @@ function Settings() {
   const { settings, updateSetting, resetSettings } = useSettingsStore();
   const [activeTab, setActiveTab] = useState('gameplay');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [diamonds, setDiamonds] = useState(0);
+  const [aiUnlocked, setAiUnlocked] = useState(false);
+  const AI_UNLOCK_COST = 50; // 50 diamonds to unlock AI
+
+  useEffect(() => {
+    setDiamonds(achievementService.getDiamonds());
+    const unlocked = localStorage.getItem('ai_feature_unlocked') === 'true';
+    setAiUnlocked(unlocked);
+  }, []);
 
   const tabs = [
     { id: 'gameplay', icon: GamepadIcon, label: 'Gameplay' },
@@ -259,10 +269,169 @@ function Settings() {
         );
 
       case 'ai':
+        if (!aiUnlocked) {
+          return (
+            <div>
+              <div className="cartoony-card" style={{
+                padding: '3rem 2rem',
+                textAlign: 'center',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: '4px solid var(--primary)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '-50px',
+                  right: '-50px',
+                  width: '200px',
+                  height: '200px',
+                  background: 'rgba(255,255,255,0.1)',
+                  borderRadius: '50%'
+                }}></div>
+                
+                <div style={{
+                  width: '120px',
+                  height: '120px',
+                  margin: '0 auto 1.5rem',
+                  borderRadius: 'var(--radius-circle)',
+                  background: 'rgba(255,255,255,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '4px solid rgba(255,255,255,0.3)',
+                  position: 'relative'
+                }}>
+                  <RobotIcon size={60} color="white" />
+                  <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    background: 'rgba(0,0,0,0.7)',
+                    borderRadius: '50%',
+                    width: '50px',
+                    height: '50px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <LockIcon size={28} color="white" />
+                  </div>
+                </div>
+
+                <h3 style={{
+                  fontFamily: "'Comic Sans MS', cursive",
+                  fontSize: '2rem',
+                  marginBottom: '1rem',
+                  color: 'white',
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+                }}>
+                  🤖 AI Opponents Locked
+                </h3>
+
+                <p style={{
+                  color: 'rgba(255,255,255,0.9)',
+                  fontSize: '1.125rem',
+                  marginBottom: '2rem',
+                  lineHeight: 1.6,
+                  maxWidth: '400px',
+                  margin: '0 auto 2rem'
+                }}>
+                  Unlock AI opponents to play against intelligent computer players! 
+                  Train against 5 difficulty levels from beginner to expert.
+                </p>
+
+                <div style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '1rem 1.5rem',
+                  marginBottom: '2rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.75rem'
+                }}>
+                  <div style={{
+                    fontSize: '2rem',
+                    fontFamily: "'Comic Sans MS', cursive",
+                    fontWeight: 900,
+                    color: 'white'
+                  }}>
+                    {AI_UNLOCK_COST} 💎
+                  </div>
+                  <div style={{
+                    textAlign: 'left',
+                    color: 'rgba(255,255,255,0.9)'
+                  }}>
+                    <div style={{ fontWeight: 700 }}>One-time unlock</div>
+                    <div style={{ fontSize: '0.875rem' }}>All difficulty levels included</div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (diamonds >= AI_UNLOCK_COST) {
+                      achievementService.spendDiamonds(AI_UNLOCK_COST, 'AI Feature Unlock');
+                      localStorage.setItem('ai_feature_unlocked', 'true');
+                      setAiUnlocked(true);
+                      setDiamonds(achievementService.getDiamonds());
+                    }
+                  }}
+                  className="cartoony-btn"
+                  disabled={diamonds < AI_UNLOCK_COST}
+                  style={{
+                    fontSize: '1.125rem',
+                    padding: '1rem 2rem',
+                    background: diamonds >= AI_UNLOCK_COST 
+                      ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+                      : 'rgba(255,255,255,0.3)',
+                    cursor: diamonds >= AI_UNLOCK_COST ? 'pointer' : 'not-allowed',
+                    opacity: diamonds >= AI_UNLOCK_COST ? 1 : 0.6
+                  }}
+                >
+                  {diamonds >= AI_UNLOCK_COST 
+                    ? '🔓 Unlock AI Mode' 
+                    : `Need ${AI_UNLOCK_COST - diamonds} more 💎`}
+                </button>
+
+                <p style={{
+                  marginTop: '1.5rem',
+                  fontSize: '0.875rem',
+                  color: 'rgba(255,255,255,0.7)'
+                }}>
+                  Your diamonds: {diamonds} 💎
+                </p>
+              </div>
+
+              <div className="cartoony-card" style={{ marginTop: '1.5rem', padding: '1.5rem' }}>
+                <h4 style={{ marginBottom: '1rem', fontFamily: "'Comic Sans MS', cursive" }}>
+                  ✨ What you get:
+                </h4>
+                <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <li>✓ Play any game vs AI</li>
+                  <li>✓ 5 difficulty levels</li>
+                  <li>✓ Practice mode offline</li>
+                  <li>✓ Unlimited games</li>
+                  <li>✓ Lifetime access</li>
+                </ul>
+              </div>
+            </div>
+          );
+        }
+        
         return (
           <div>
             <h3 className="cartoony-subtitle" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <RobotIcon size={24} color="var(--primary)" /> AI Opponent Settings
+              <span style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                padding: '0.25rem 0.75rem',
+                borderRadius: 'var(--radius-lg)',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                marginLeft: '0.5rem'
+              }}>UNLOCKED</span>
             </h3>
             <p style={{
               color: 'var(--text-secondary)',

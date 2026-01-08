@@ -33,12 +33,21 @@ function Leaderboard() {
 
   const games = [
     { id: 'all', name: 'All Games' },
+    // Core Games
     { id: 'snake', name: 'Snake' },
     { id: 'pong', name: 'Pong' },
     { id: 'tetris', name: 'Tetris' },
     { id: '2048', name: '2048' },
     { id: 'tic-tac-toe', name: 'Tic Tac Toe' },
-    { id: 'connect-four', name: 'Connect Four' }
+    { id: 'connect-four', name: 'Connect Four' },
+    // Premium Games
+    { id: 'poker', name: 'Texas Hold\'em Poker' },
+    { id: 'kart-racing', name: 'Kart Racing 3D' },
+    // Chill Games (NO SCORING - No leaderboard)
+    // { id: 'infinite-roads', name: 'Infinite Roads' },
+    // { id: 'zen-garden', name: 'Zen Garden' },
+    // { id: 'space-explorer', name: 'Space Explorer' },
+    // { id: 'campfire-simulator', name: 'Campfire Simulator' }
   ];
 
   const periods = [
