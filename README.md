@@ -129,15 +129,68 @@
 - **User Profiles** - Track stats and history
 - **Friend System** - Play with friends
 
-### 🎮 **More Games**
-- 10+ additional games in development
-- Multiplayer support for select games
-- Tournament modes
-- Custom game modes
+# 🎮 Mono Games - The ULTIMATE Browser Gaming Platform
+
+> **The most comprehensive, feature-rich, and polished browser gaming experience ever created.**
+
+[![Games](https://img.shields.io/badge/Games-27%2B-brightgreen)]()
+[![Themes](https://img.shields.io/badge/Themes-8-blue)]()
+[![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20PWA-orange)]()
+[![License](https://img.shields.io/badge/License-MIT-yellow)]()
+
+## 🌟 Why Mono Games is ULTIMATE
+
+### 🎯 Unmatched Game Collection
+- **17 Core Games** - Completely FREE, pre-installed classics
+- **10 Premium Games** - Unlock with in-game diamonds
+- **3D Games** - Powered by Three.js for stunning graphics
+- All games playable **instantly** - no downloads required!
+
+### 💎 Revolutionary Economy System
+- **Achievement System** - 9+ achievements with diamond rewards
+- **Leaderboards** - Global, per-game, and activity-based rankings  
+- **Points → Stars** - Fair conversion system for all 27 games
+- **Diamond Currency** - Earn through gameplay, spend on premium content
+
+### 🎨 8 Stunning Themes
+- Light, Dark, Ocean, Sunset, Forest, Purple, Retro, Neon
+- **Perfect dark mode** - Every page, every element
+- Cartoony, playful aesthetic with smooth animations
+- Fully responsive on all devices
+
+### ☁️ Cloud Sync & Offline Support
+- **Local-first** data storage using IndexedDB
+- **Auto-sync** when threshold reached (100 games OR 7 days)
+- **Manual sync** button for instant backup
+- Works **completely offline** - sync when reconnected
+
+### 🏆 Advanced Features
+- **Progress tracking** across all games
+- **High score persistence** with cloud backup
+- **Multiplayer support** (select games)
+- **PWA support** - Install as desktop app
+- **Touch controls** optimized for mobile
 
 ---
 
-## 📊 Tech Stack
+## 🚀 Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/Raft-The-Crab/Mono-Games.git
+cd mono-games
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+Visit `http://localhost:5173` and start playing!
 
 ### Frontend
 - React 18 + Vite 5

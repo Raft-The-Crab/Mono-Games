@@ -1,7 +1,8 @@
 {
-  "name": "mono-games",
-  "version": "1.0.0",
-  "description": "Cross-platform gaming platform with 50+ games for Windows, Android, and Web",
+  "name": "mono-games-ultimate",
+  "private": true,
+  "version": "2.0.0",
+  "description": "The ULTIMATE browser gaming platform - 27+ games, cloud sync, achievements, leaderboards, and more!",
   "type": "module",
   "scripts": {
     "dev": "npm run dev:client",
