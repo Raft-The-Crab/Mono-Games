@@ -24,6 +24,7 @@ import { adaptiveRateLimit, rateLimiters } from './middleware/advancedRateLimit.
 
 // Import services
 import realtimeManager from './services/realtimeManager.js';
+import redisService from './services/redisService.js';
 
 // Load environment variables
 dotenv.config();
@@ -78,6 +79,7 @@ app.use(requestLogger);
 // Health check
 app.get('/health', (req, res) => {
   const cacheStats = getCacheStats();
+  const redisStats = redisService.getStats();
   
   res.status(200).json({
     status: 'healthy',
@@ -85,6 +87,7 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
     cache: cacheStats,
+    redis: redisStats,
     memory: {
       used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
       total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
@@ -121,6 +124,16 @@ app.use(errorHandler);
 // Initialize WebSocket server
 realtimeManager.initialize(server);
 console.log('🔌 WebSocket server initialized');
+
+// Initialize Redis (with fallback)
+(async () => {
+  try {
+    await redisService.initialize();
+    console.log('🗄️  Redis initialized:', redisService.getStats().type);
+  } catch (error) {
+    console.warn('⚠️  Redis initialization failed, using in-memory cache:', error.message);
+  }
+})();
 
 // Start server
 server.listen(PORT, () => {

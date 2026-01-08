@@ -6,6 +6,8 @@ interface WebSocketMessage {
   [key: string]: any;
 }
 
+export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'error';
+
 interface UseWebSocketOptions {
   onMessage?: (message: WebSocketMessage) => void;
   onConnect?: () => void;
@@ -35,6 +37,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   const reconnectAttempts = useRef(0);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const { token } = useAuthStore();
 
   const connect = useCallback(() => {
@@ -47,11 +50,15 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       const host = import.meta.env.VITE_WS_URL || 'localhost:5000';
       const wsUrl = `${protocol}//${host}/ws`;
 
+      console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
+      setConnectionState('connecting');
+      
       ws.current = new WebSocket(wsUrl);
 
       ws.current.onopen = () => {
         console.log('✅ WebSocket connected');
         setIsConnected(true);
+        setConnectionState('connected');
         reconnectAttempts.current = 0;
 
         // Authenticate with token
@@ -76,23 +83,29 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
       ws.current.onerror = (error) => {
         console.error('❌ WebSocket error:', error);
+        setConnectionState('error');
         onError?.(error);
       };
 
       ws.current.onclose = () => {
         console.log('🔌 WebSocket disconnected');
         setIsConnected(false);
+        setConnectionState('disconnected');
         ws.current = null;
         onDisconnect?.();
 
         // Attempt reconnection
         if (reconnect && reconnectAttempts.current < maxReconnectAttempts) {
           reconnectAttempts.current++;
-          console.log(`🔄 Reconnecting... (Attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`);
+          const delay = Math.min(reconnectInterval * Math.pow(2, reconnectAttempts.current - 1), 30000);
+          console.log(`🔄 Reconnecting in ${delay}ms (Attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`);
           
           reconnectTimer.current = setTimeout(() => {
             connect();
-          }, reconnectInterval);
+          }, delay);
+        } else if (reconnectAttempts.current >= maxReconnectAttempts) {
+          console.error('❌ Max reconnection attempts reached');
+          setConnectionState('error');
         }
       };
     } catch (error) {
@@ -112,6 +125,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     }
 
     setIsConnected(false);
+    setConnectionState('disconnected');
   }, []);
 
   const send = useCallback((message: WebSocketMessage) => {
@@ -133,6 +147,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   }, [token, connect, disconnect]);
 
   return {
+    connectionState,
+    reconnectAttempts: reconnectAttempts.current,
     isConnected,
     send,
     connect,

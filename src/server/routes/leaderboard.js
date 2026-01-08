@@ -6,6 +6,7 @@ import { validateRequest } from '../middleware/validation.js';
 import { validateScore } from '../services/antiCheat.js';
 import realtimeManager from '../services/realtimeManager.js';
 import sessionManager from '../services/sessionManager.js';
+import redisService from '../services/redisService.js';
 
 const router = express.Router();
 
@@ -25,20 +26,40 @@ router.get('/:gameId', async (req, res, next) => {
     const { gameId } = req.params;
     const limit = parseInt(req.query.limit) || 100;
 
+    // Try to get from cache first
+    const cached = await redisService.getLeaderboard(gameId);
+    if (cached) {
+      return res.json({
+        success: true,
+        data: {
+          gameId,
+          leaderboard: cached,
+          cached: true
+        }
+      });
+    }
+
+    // Fetch from database
     const leaderboard = await db.getLeaderboard(gameId, limit);
+    
+    const formattedLeaderboard = leaderboard.map((entry, index) => ({
+      rank: index + 1,
+      userId: entry.user_id,
+      username: entry.users?.username || 'Anonymous',
+      avatar: entry.users?.avatar,
+      score: entry.score,
+      submittedAt: entry.submitted_at
+    }));
+
+    // Cache the result (5 minute TTL)
+    await redisService.cacheLeaderboard(gameId, formattedLeaderboard);
 
     res.json({
       success: true,
       data: {
         gameId,
-        leaderboard: leaderboard.map((entry, index) => ({
-          rank: index + 1,
-          userId: entry.user_id,
-          username: entry.users?.username || 'Anonymous',
-          avatar: entry.users?.avatar,
-          score: entry.score,
-          submittedAt: entry.submitted_at
-        }))
+        leaderboard: formattedLeaderboard,
+        cached: false
       }
     });
   } catch (error) {
@@ -78,6 +99,9 @@ router.post('/:gameId', auth, validateRequest(submitScoreSchema), async (req, re
     // Use adjusted score if confidence is low
     const finalScore = validation.adjustedScore || score;
 
+    // Track score submission for anti-cheat
+    await redisService.trackScoreSubmission(userId, gameId);
+
     // Check if it's a new personal best
     const currentBest = await db.getUserBestScore(userId, gameId);
     const isNewBest = !currentBest || finalScore > currentBest.score;
@@ -101,8 +125,21 @@ router.post('/:gameId', auth, validateRequest(submitScoreSchema), async (req, re
 
       const newScore = await db.submitScore(scoreData);
 
+      // Invalidate leaderboard cache
+      await redisService.invalidateLeaderboard(gameId);
+
       // Get updated leaderboard
       const updatedLeaderboard = await db.getLeaderboard(gameId, 10);
+
+      // Cache the updated leaderboard
+      await redisService.cacheLeaderboard(gameId, updatedLeaderboard.map((entry, index) => ({
+        rank: index + 1,
+        userId: entry.user_id,
+        username: entry.users?.username || 'Anonymous',
+        avatar: entry.users?.avatar,
+        score: entry.score,
+        submittedAt: entry.submitted_at
+      })));
 
       // Broadcast to WebSocket subscribers
       realtimeManager.broadcastLeaderboardUpdate(gameId, updatedLeaderboard);
