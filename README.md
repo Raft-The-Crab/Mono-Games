@@ -17,16 +17,18 @@
 ## 🌟 Features
 
 ### 🎯 **Game Library**
-- **6 Complete Games** - Snake, Tetris, 2048, Pong, Memory Match, Turbo Racer
-- **More Coming Soon** - Breakout, Space Invaders, Flappy Bird, and more
+- **10+ Complete Games** - Including InfiniteRoads, Zen Garden, Space Explorer, Campfire Simulator
+- **Premium Games** - Poker, Kart Racing, and more
+- **Chill Games** - 4 relaxation-focused games with NO SCORING
 - **Offline & Online Modes** - Play anywhere, anytime
 - **Classic & Modern** - Mix of retro and new games
+- **3D Games** - Babylon.js powered immersive experiences
 
 ### 🖥️ **Cross-Platform**
-- **Web App (PWA)** - Play in any modern browser
-- **Windows Desktop** - Native application (.exe) *[Coming Soon]*
-- **Android App** - Mobile optimized (.apk) *[Coming Soon]*
+- **Android App** - Mobile optimized (.apk) - PRIMARY TARGET
+- **Windows Desktop** - Native application (.exe) - PRIMARY TARGET
 - **Seamless Sync** - Your progress follows you everywhere
+- **NOT Supporting**: Web/macOS/Linux (focus on Android + Windows)
 
 ### 🔒 **Security & Privacy**
 - **Anti-Cheat System** - Fair play for everyone
