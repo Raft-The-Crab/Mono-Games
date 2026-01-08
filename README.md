@@ -1,74 +1,134 @@
-# 🎮 Mono Games
-
-**Version 2.0.0** | **Status: Ultimate Update - In Progress** | **Last Updated: January 8, 2026**
-
 <div align="center">
 
-**The Ultimate Cross-Platform Gaming Platform**
+# 🎮 Mono Games
 
-*Multiple games • Offline & Online • Secure & Fast*
+### The Ultimate Gaming Platform for Android & Windows
+
+*Play anywhere. Anytime. Your games, your progress, everywhere.*
+
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/Raft-The-Crab/Mono-Games)
+[![Status](https://img.shields.io/badge/status-Active%20Development-brightgreen.svg)](https://github.com/Raft-The-Crab/Mono-Games)
+[![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows-orange.svg)](https://github.com/Raft-The-Crab/Mono-Games)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
 
 🔒 **PRIVATE PROJECT** - Authorized Access Only
+
+[Features](#-features) • [Games](#-game-library) • [Download](#-installation) • [Documentation](#-documentation)
+
+---
+
+### 📸 Screenshots
+
+> 🎬 *Gameplay GIF and screenshots coming soon! Project is in active development.*
 
 </div>
 
 ---
 
-## 🌟 Features
+## ✨ Features
 
-### 🎯 **Game Library**
-- **10+ Complete Games** - Including InfiniteRoads, Zen Garden, Space Explorer, Campfire Simulator
-- **Premium Games** - Poker, Kart Racing, and more
-- **Chill Games** - 4 relaxation-focused games with NO SCORING
-- **Offline & Online Modes** - Play anywhere, anytime
-- **Classic & Modern** - Mix of retro and new games
-- **3D Games** - Babylon.js powered immersive experiences
+<table>
+<tr>
+<td width="50%">
 
-### 🖥️ **Cross-Platform**
-- **Android App** - Mobile optimized (.apk) - PRIMARY TARGET
-- **Windows Desktop** - Native application (.exe) - PRIMARY TARGET
-- **Seamless Sync** - Your progress follows you everywhere
-- **NOT Supporting**: Web/macOS/Linux (focus on Android + Windows)
+### 🎮 Gaming Experience
+- **15+ Games** - Arcade, puzzle, racing, strategy, and more
+- **Chill Mode** - 4 relaxation games with NO SCORING
+- **Premium Content** - Unlock special games with diamonds
+- **AI Opponents** - 5 difficulty levels (50💎 unlock)
+- **Offline Play** - Full functionality without internet
+- **3D Graphics** - Babylon.js powered immersive games
+- **Touch Controls** - Optimized for mobile and desktop
 
-### 🔒 **Security & Privacy**
-- **Anti-Cheat System** - Fair play for everyone
-- **Data Encryption** - Your data is protected
+### 🏆 Progression System
+- **Achievements** - 50+ achievements to unlock
+- **Leaderboards** - Global competition across 8 games
+- **Daily Challenges** - New challenges every day
+- **Diamond Economy** - Earn and spend in-game currency
+- **Statistics** - Track your gaming performance
+- **Profile System** - Customize your player profile
+
+</td>
+<td width="50%">
+
+### 🖥️ Platform Support
+- ✅ **Android APK** - Mobile optimized (PRIMARY)
+- ✅ **Windows EXE** - Desktop application (PRIMARY)
+- ✅ **Cloud Sync** - Progress across devices
+- ❌ Web/macOS/Linux - Not supported
+
+### 🔒 Security & Performance
 - **JWT Authentication** - Secure login system
-- **Privacy First** - No tracking, no ads
-- **Proprietary License** - Private development
+- **Anti-Cheat** - Fair play enforcement
+- **Data Encryption** - Protected user data
+- **60 FPS** - Smooth gameplay
+- **Fast Loading** - Optimized assets
+- **WebSocket** - Real-time multiplayer
+- **Redis Caching** - Fast data access
 
-### ⚡ **Performance**
-- **Fast Loading** - Optimized for speed
-- **Smooth Gameplay** - 60 FPS gaming
-- **Offline Support** - Full functionality without internet
-- **Responsive Design** - Works on any screen size
-
-### 🎨 **Design**
-- **Cartoony UI** - Fun, hand-drawn aesthetic
+### 🎨 Design & UX
+- **Cartoony UI** - Fun, colorful aesthetic
 - **Retro Vibes** - Classic gaming feel
-- **Audio System** - Sound effects and music
-- **Particle Effects** - Dynamic visual feedback
-- **Animations** - Smooth transitions and effects
+- **Animations** - Smooth transitions
+- **Particle Effects** - Visual feedback
+- **Responsive** - Works on any screen
+- **Accessibility** - User-friendly design
+
+</td>
+</tr>
+</table>
 
 ---
 
-## 🎮 Available Games (Playables)
+## 🎮 Game Library
 
-| Game | Genre | Status | Notes |
-|------|-------|--------|-------|
-| 🐍 **Snake** | Arcade | ✅ Playable | Classic grid snake |
-| 🧱 **Tetris** | Arcade | ✅ Playable | Line clear + levels |
-| 🔢 **2048** | Puzzle | ✅ Playable | Merge tiles, score chase |
-| 🏓 **Pong** | Sports | ✅ Playable | AI opponent |
-| ❌ **Tic-Tac-Toe** | Strategy | ✅ Playable | Local/AI modes |
-| 🔴 **Connect Four** | Strategy | ✅ Playable | Gravity grid |
-| 🃏 **Memory Match** | Puzzle | ✅ Playable | Card matching |
-| 🏎️ **Racing** | Racing | ✅ Playable | Endless lanes |
-| 🧱 **Breakout** | Arcade | ✅ Playable | Brick breaker |
-| 🌌 **Infinite Roads** | Racing | ✅ Playable | 3D driving |
-| 🚀 **Space Shooter** | Shooter | ✅ Playable | Wave shooter |
-| 🧗 **Platformer** | Platform | ✅ Playable | Side scroller |
-| 🧊 **Cube Runner** | Arcade | ✅ Playable | 3D obstacle dodge |
+### 🕹️ Core Games (15+ Available)
+
+<table>
+<tr>
+<td width="33%">
+
+#### 🎯 Arcade Classics
+- 🐍 **Snake** - Grow and survive
+- 🧱 **Tetris** - Stack and clear
+- 🏓 **Pong** - Paddle battle
+- 🧱 **Breakout** - Brick destroyer
+- 🚀 **Space Shooter** - Wave combat
+
+</td>
+<td width="33%">
+
+#### 🧩 Puzzle & Strategy
+- 🔢 **2048** - Merge to win
+- 🧠 **Memory Match** - Card matching
+- 🎯 **Maze Runner** - Find the exit
+- ❌ **Tic-Tac-Toe** - Classic grid
+- 🔴 **Connect Four** - Drop strategy
+
+</td>
+<td width="33%">
+
+#### 🏎️ Racing & Action
+- 🌌 **Infinite Roads** - 3D driving
+- 🏎️ **Turbo Racer** - Endless lanes
+- 🧊 **Cube Runner** - Dodge obstacles
+- 🧗 **Platformer** - Side scroller
+- 🎮 **More Coming!**
+
+</td>
+</tr>
+</table>
+
+### 💎 Premium Games (Unlock with Diamonds)
+- 🃏 **Texas Hold'em Poker** - Multiplayer card game
+- 🏁 **Kart Racing 3D** - Fast-paced racing
+- 🎲 **More Premium Games** - Coming soon!
+
+### 🧘 Chill Games (No Scoring, Just Relax)
+- 🌙 **Zen Garden** - Peaceful gardening
+- 🪐 **Space Explorer** - Calm space travel
+- 🔥 **Campfire Simulator** - Cozy campfire
+- 🛣️ **Infinite Roads** - Meditative driving
 
 ---
 
@@ -188,35 +248,112 @@ npm install
 # Start development server
 npm run dev
 
-# Build for production
-npm run build
+---
+
+## 📥 Installation
+
+### 🤖 Android (APK)
+1. Download the latest `.apk` file from releases
+2. Enable "Install from Unknown Sources" in Android settings
+3. Open the APK file and install
+4. Launch Mono Games and start playing!
+
+> 📱 **Requirements:** Android 7.0 (Nougat) or higher
+
+### 🪟 Windows (EXE)
+1. Download the installer `.exe` from releases
+2. Run the installer (may require administrator privileges)
+3. Follow installation wizard
+4. Launch from Start Menu or Desktop shortcut
+
+> 💻 **Requirements:** Windows 10/11 (64-bit)
+
+### 🛠️ Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/Raft-The-Crab/Mono-Games.git
+cd mono-games
+
+# Install dependencies
+npm install
+
+# Install server dependencies
+cd src/server
+npm install
+cd ../..
+
+# Start development servers
+# Terminal 1 - Backend
+cd src/server
+node server.js
+
+# Terminal 2 - Frontend
+cd src/client
+npm run dev
 ```
 
-Visit `http://localhost:5173` and start playing!
+Visit `http://localhost:5173` for the frontend and `http://localhost:5000` for the backend API.
+
+For detailed build instructions, see [docs/BUILD_COMMANDS.md](docs/BUILD_COMMANDS.md)
+
+---
+
+## 🛠️ Technology Stack
+
+<div align="center">
 
 ### Frontend
-- React 18 + Vite 5
-- Canvas API for 2D graphics
-- Web Audio API for sound
-- Zustand for state management
-- React Router for navigation
-- PWA with offline support
+![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite&logoColor=white)
+![Babylon.js](https://img.shields.io/badge/Babylon.js-7.x-BB464B?logo=babylon.js&logoColor=white)
 
 ### Backend
-- Node.js + Express
-- JWT authentication
-- AES-256 encryption
-- Anti-cheat validation
-- Supabase database
-- RESTful API
+![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4.21-000000?logo=express&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-7.4-DC382D?logo=redis&logoColor=white)
+![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-010101?logo=socket.io&logoColor=white)
 
-### Security
-- Encrypted local storage
-- Secure authentication
-- Anti-cheat system
-- Rate limiting
-- Input validation
-- CSRF protection
+### Database & Auth
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Auth-000000?logo=jsonwebtokens&logoColor=white)
+
+### Deployment
+![Android](https://img.shields.io/badge/Android-APK-3DDC84?logo=android&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-EXE-0078D4?logo=windows&logoColor=white)
+![Capacitor](https://img.shields.io/badge/Capacitor-6.x-119EFF?logo=capacitor&logoColor=white)
+![Electron](https://img.shields.io/badge/Electron-Latest-47848F?logo=electron&logoColor=white)
+
+</div>
+
+### 🎮 Game Engines & Graphics
+- **Babylon.js 7.x** - 3D game engine for immersive experiences
+- **Canvas 2D API** - Classic 2D games with pixel-perfect rendering
+- **WebGL** - Hardware-accelerated graphics
+- **Particle Systems** - Dynamic visual effects
+
+### 🔧 Core Technologies
+- **React 18.3** - Modern UI with hooks and suspense
+- **TypeScript 5.6** - Type-safe development
+- **Vite 5.4** - Lightning-fast builds
+- **Zustand** - Lightweight state management
+- **React Router** - Client-side routing
+
+### ⚙️ Backend Infrastructure
+- **Node.js 20.x** - Server runtime
+- **Express 4.21** - RESTful API framework
+- **Redis 7.4** - In-memory caching
+- **WebSocket (ws)** - Real-time communication
+- **JWT** - Secure authentication
+- **bcrypt** - Password hashing
+
+### 📦 Build & Deployment Tools
+- **Capacitor** - Native Android app packaging
+- **Electron** - Windows desktop application
+- **Electron Builder** - EXE installer creation
+- **Gradle** - Android build system
+- **Vite Plugin PWA** - Offline support
 
 ---
 
@@ -236,21 +373,98 @@ For authorized developers only.
 
 ## 📈 Version History
 
-### Version 1.0.0 (Current)
-- ✅ 6 complete games with full features
-- ✅ Beautiful cartoony UI with animations
-- ✅ Complete authentication system
-- ✅ Audio manager with sound effects
-- ✅ Racing game with power-ups and particles
-- ✅ Express backend with security
-- 🔄 Desktop and mobile apps in progress
+### Version 2.0.0 - "Ultimate Update" (Current - January 2026)
+- 🎮 **15+ Complete Games** - Including 2 brand new games (Memory Match, Maze Runner)
+- 🧠 **Memory Match** - Card matching with 4 themes and 3D flip animations
+- 🎯 **Maze Runner** - Procedural mazes with minimap and collectibles
+- 🧱 **Breakout** - Classic brick-breaking with power-ups
+- 🤖 **AI Paywall** - 50💎 unlock system for AI opponents
+- 📚 **Help Documentation** - Comprehensive 7-section FAQ system
+- 🏆 **Improved Leaderboards** - 8 competitive games tracked
+- 🎨 **Enhanced UI** - Better game selection and navigation
+- 🛠️ **Game Improvements** - All chill games now fully functional
+- 📖 **Complete Documentation** - Deployment and development guides
+- 🔧 **Backend Enhancements** - Redis caching and WebSocket support
+
+### Version 1.5.0 - "Chill Update" (December 2025)
+- 🌙 **Zen Garden** - Peaceful gardening simulation
+- 🪐 **Space Explorer** - Calm space exploration
+- 🔥 **Campfire Simulator** - Cozy campfire experience
+- 🛣️ **Infinite Roads** - Meditative 3D driving
+- 🎵 **Audio System** - Background music and sound effects
+- ⚡ **Performance** - Optimized loading and rendering
+
+### Version 1.0.0 - "Foundation" (November 2025)
+- ✅ **6 Core Games** - Snake, Tetris, 2048, Pong, Tic-Tac-Toe, Connect Four
+- ✅ **Authentication System** - JWT-based secure login
+- ✅ **Cartoony UI** - Hand-drawn aesthetic with animations
+- ✅ **Express Backend** - RESTful API with security
+- ✅ **Mobile Responsive** - Touch controls and optimization
+
+---
+
+## 📋 Roadmap
+
+### 🔜 Coming Soon
+- [ ] More arcade games (Space Invaders, Pacman style)
+- [ ] Achievement animations and particle effects
+- [ ] Enhanced game launcher with filters and search
+- [ ] About page and changelog in-app
+- [ ] Social features and friend system
+- [ ] More premium games
+
+### 🎯 Future Plans
+- [ ] Multiplayer modes for more games
+- [ ] Tournament system
+- [ ] Seasonal events
+- [ ] Custom themes
+- [ ] Game modding support
+- [ ] Community features
+
+---
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the `docs/` folder:
+
+| Document | Description |
+|----------|-------------|
+| [📖 ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design and architecture overview |
+| [🔧 BUILD_COMMANDS.md](docs/BUILD_COMMANDS.md) | Build commands for all platforms |
+| [🚀 DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) | Android APK & Windows EXE deployment |
+| [💻 DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md) | Development workflow and best practices |
+
+### Quick Links
+- **In-App Help** - Visit `/help` in the application for comprehensive FAQ
+- **Game Controls** - Each game includes control instructions
+- **API Documentation** - Available in backend source code
+
+---
+
+## 🤝 Contributing
+
+This is a **private project** with restricted access. If you're an authorized developer:
+
+1. Clone the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m '✨ Add AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Contact the lead developer for review
+
+### Commit Convention
+- ✨ New feature • 🐛 Bug fix • 📚 Documentation • 🎨 UI improvements  
+- ⚡ Performance • 🔒 Security • 🎮 Games
 
 ---
 
 <div align="center">
 
-**🎮 Mono Games** - *Making Gaming Fun Again*
+**🎮 Mono Games** - *The Ultimate Gaming Platform*
 
-Repository: [github.com/Aliciamaye/Mono-Games](https://github.com/Aliciamaye/Mono-Games)
+[![GitHub](https://img.shields.io/badge/GitHub-Mono--Games-181717?logo=github)](https://github.com/Raft-The-Crab/Mono-Games)
+
+Made with ❤️ by the Mono Games Team
+
+**[Play Now](#-installation)** • **[Documentation](#-documentation)** • **[Roadmap](#-roadmap)**
 
 </div>
