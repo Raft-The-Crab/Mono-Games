@@ -19,8 +19,6 @@ export default class Poker {
   private gamePhase: 'preflop' | 'flop' | 'turn' | 'river' | 'showdown' | 'gameover' = 'preflop';
   
   // UI state
-  private selectedAction: 'fold' | 'call' | 'raise' | null = null;
-  private raiseAmount: number = 0;
   private message: string = 'Welcome to Texas Hold\'em!';
   
   // Callbacks
@@ -311,7 +309,7 @@ export default class Poker {
     return { rank: 0, name: 'High Card', highCard: values[0] };
   }
 
-  update(deltaTime: number): void {
+  update(_deltaTime: number): void {
     if (!this.isRunning || this.isPaused) return;
   }
 
@@ -466,7 +464,7 @@ export default class Poker {
     this.onGameOver = callback;
   }
 
-  setOnLevelComplete(callback: (level: number) => void): void {
+  setOnLevelComplete(_callback: (level: number) => void): void {
     // Not used in poker
   }
 }
