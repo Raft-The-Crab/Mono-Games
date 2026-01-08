@@ -150,6 +150,19 @@ export const GAME_REGISTRY = [
     new: true
   },
   {
+    id: 'flappy',
+    name: 'Flappy Bird',
+    category: GAME_CATEGORIES.ARCADE,
+    renderer: RENDERER_TYPES.CANVAS_2D,
+    multiplayer: false,
+    description: 'Tap to flap and avoid pipes!',
+    difficulty: 'hard',
+    installed: true,
+    size: '0.7MB',
+    rating: 4.3,
+    new: true
+  },
+  {
     id: 'infinite-roads',
     name: 'Infinite Roads',
     category: GAME_CATEGORIES.SIMULATION,

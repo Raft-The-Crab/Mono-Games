@@ -15,6 +15,8 @@ import achievementRoutes from './routes/achievements.js';
 import saveRoutes from './routes/saves.js';
 import sessionRoutes from './routes/sessions.js';
 import statisticsRoutes from './routes/statistics.js';
+import statsRoutes from './routes/stats.js';
+import dailyChallengesRoutes from './routes/dailyChallenges.js';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
@@ -108,8 +110,8 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/saves', saveRoutes);
 app.use('/api/sessions', sessionRoutes);
-app.use('/api/statistics', statisticsRoutes);
-
+app.use('/api/statistics', statisticsRoutes);app.use('/api/stats', statsRoutes);
+app.use('/api/daily-challenges', dailyChallengesRoutes);
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
