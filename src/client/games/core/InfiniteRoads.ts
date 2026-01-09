@@ -112,6 +112,10 @@ export default class InfiniteRoads {
   private bridgeChance: number = 0.03; // 3% chance per segment
   private tunnelChance: number = 0.02; // 2% chance per segment
   
+  // Road Hazards ⚠️
+  private hazards: BABYLON.Mesh[] = [];
+  private hazardChance: number = 0.05; // 5% chance per segment
+  
   
   // Lighting & Post-Processing
   private sunLight!: BABYLON.DirectionalLight;
@@ -1064,6 +1068,11 @@ export default class InfiniteRoads {
       this.roadSegments[this.roadSegments.length - 1].hasTunnel = true;
     }
     
+    // Check for hazard generation (not on bridges/tunnels)
+    if (!shouldGenerateBridge && !shouldGenerateTunnel && Math.random() < this.hazardChance) {
+      this.createRoadHazard(index, this.roadCurve, this.roadElevation, z);
+    }
+    
     // Enhanced terrain generation
     this.generateTerrain(index, this.roadCurve, this.roadElevation, z);
     
@@ -1445,6 +1454,136 @@ export default class InfiniteRoads {
     this.tunnels.push(tunnel, entrance, exit);
     console.log(`🚇 Tunnel constructed at ${z.toFixed(0)}m`);
   }
+  
+  private createRoadHazard(index: number, centerX: number, centerY: number, z: number): void {
+    const hazardTypes = ['rocks', 'debris', 'pothole', 'construction'];
+    const hazardType = hazardTypes[Math.floor(Math.random() * hazardTypes.length)];
+    
+    if (hazardType === 'rocks') {
+      // Fallen rocks on the road
+      const rockCount = 2 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < rockCount; i++) {
+        const rock = BABYLON.MeshBuilder.CreateSphere(`rock_hazard_${index}_${i}`, {
+          diameter: 0.8 + Math.random() * 1.2,
+          segments: 8
+        }, this.scene);
+        
+        rock.position.x = centerX + (Math.random() - 0.5) * (this.roadWidth - 2);
+        rock.position.y = centerY + 0.5;
+        rock.position.z = z + (Math.random() - 0.5) * this.segmentLength * 0.5;
+        rock.scaling.y = 0.6 + Math.random() * 0.3;
+        
+        const rockMat = new BABYLON.StandardMaterial(`rockHazardMat_${index}_${i}`, this.scene);
+        rockMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.42);
+        rockMat.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+        rock.material = rockMat;
+        
+        this.hazards.push(rock);
+      }
+      console.log(`🪨 Fallen rocks at ${z.toFixed(0)}m`);
+    }
+    else if (hazardType === 'debris') {
+      // Road debris (boxes, scattered objects)
+      const debrisCount = 3 + Math.floor(Math.random() * 4);
+      for (let i = 0; i < debrisCount; i++) {
+        const debris = BABYLON.MeshBuilder.CreateBox(`debris_${index}_${i}`, {
+          width: 0.3 + Math.random() * 0.5,
+          height: 0.3 + Math.random() * 0.5,
+          depth: 0.3 + Math.random() * 0.5
+        }, this.scene);
+        
+        debris.position.x = centerX + (Math.random() - 0.5) * (this.roadWidth - 2);
+        debris.position.y = centerY + 0.3;
+        debris.position.z = z + (Math.random() - 0.5) * this.segmentLength * 0.6;
+        debris.rotation.x = Math.random() * Math.PI;
+        debris.rotation.y = Math.random() * Math.PI;
+        debris.rotation.z = Math.random() * Math.PI;
+        
+        const debrisMat = new BABYLON.StandardMaterial(`debrisMat_${index}_${i}`, this.scene);
+        debrisMat.diffuseColor = new BABYLON.Color3(0.5 + Math.random() * 0.3, 0.3, 0.1);
+        debris.material = debrisMat;
+        
+        this.hazards.push(debris);
+      }
+      console.log(`📦 Debris scattered at ${z.toFixed(0)}m`);
+    }
+    else if (hazardType === 'pothole') {
+      // Pothole (dark circle on road)
+      const pothole = BABYLON.MeshBuilder.CreateCylinder(`pothole_${index}`, {
+        diameter: 1.5 + Math.random(),
+        height: 0.15,
+        tessellation: 12
+      }, this.scene);
+      
+      const lane = Math.floor(Math.random() * 3) - 1;
+      pothole.position.x = centerX + lane * 3;
+      pothole.position.y = centerY - 0.05;
+      pothole.position.z = z + (Math.random() - 0.5) * this.segmentLength * 0.3;
+      
+      const potholeMat = new BABYLON.StandardMaterial(`potholeMat_${index}`, this.scene);
+      potholeMat.diffuseColor = new BABYLON.Color3(0.05, 0.05, 0.06);
+      potholeMat.specularColor = new BABYLON.Color3(0, 0, 0);
+      pothole.material = potholeMat;
+      
+      this.hazards.push(pothole);
+      console.log(`🕳️ Pothole in lane ${lane} at ${z.toFixed(0)}m`);
+    }
+    else if (hazardType === 'construction') {
+      // Construction zone with cones and signs
+      const coneCount = 4 + Math.floor(Math.random() * 3);
+      const side = Math.random() > 0.5 ? 1 : -1;
+      
+      for (let i = 0; i < coneCount; i++) {
+        const cone = BABYLON.MeshBuilder.CreateCylinder(`cone_${index}_${i}`, {
+          diameterTop: 0.2,
+          diameterBottom: 0.4,
+          height: 0.8,
+          tessellation: 8
+        }, this.scene);
+        
+        cone.position.x = centerX + side * (this.roadWidth / 2 - 2);
+        cone.position.y = centerY + 0.4;
+        cone.position.z = z + i * (this.segmentLength / coneCount);
+        
+        const coneMat = new BABYLON.StandardMaterial(`coneMat_${index}_${i}`, this.scene);
+        coneMat.diffuseColor = new BABYLON.Color3(1.0, 0.4, 0.0);
+        coneMat.emissiveColor = new BABYLON.Color3(0.5, 0.2, 0.0);
+        cone.material = coneMat;
+        
+        this.hazards.push(cone);
+      }
+      
+      // Warning sign
+      const signPost = BABYLON.MeshBuilder.CreateCylinder(`signPost_${index}`, {
+        diameter: 0.1,
+        height: 2
+      }, this.scene);
+      signPost.position.x = centerX + side * (this.roadWidth / 2 - 1.5);
+      signPost.position.y = centerY + 1;
+      signPost.position.z = z;
+      
+      const signBoard = BABYLON.MeshBuilder.CreateBox(`signBoard_${index}`, {
+        width: 1,
+        height: 1,
+        depth: 0.1
+      }, this.scene);
+      signBoard.position.x = signPost.position.x;
+      signBoard.position.y = signPost.position.y + 1.2;
+      signBoard.position.z = signPost.position.z;
+      
+      const signMat = new BABYLON.StandardMaterial(`constructionSignMat_${index}`, this.scene);
+      signMat.diffuseColor = new BABYLON.Color3(1.0, 0.8, 0.0);
+      signMat.emissiveColor = new BABYLON.Color3(0.5, 0.4, 0.0);
+      signBoard.material = signMat;
+      
+      const postMat = new BABYLON.StandardMaterial(`postMat_${index}`, this.scene);
+      postMat.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+      signPost.material = postMat;
+      
+      this.hazards.push(signPost, signBoard);
+      console.log(`🚧 Construction zone at ${z.toFixed(0)}m`);
+    }
+  }
 
   private generateClouds(): void {
     for (let i = 0; i < 30; i++) {
@@ -1794,6 +1933,12 @@ export default class InfiniteRoads {
     // Remove traffic cars that are too far behind
     this.trafficCars = this.trafficCars.filter(car => {
       if (car.position < this.distanceTraveled - 200) {
+        // Dispose of headlights if they exist
+        if (car.mesh.metadata?.lights) {
+          for (const light of car.mesh.metadata.lights) {
+            light.dispose();
+          }
+        }
         car.mesh.dispose();
         return false;
       }
@@ -1812,6 +1957,15 @@ export default class InfiniteRoads {
     this.tunnels = this.tunnels.filter(tunnel => {
       if (tunnel.position.z < this.car.position.z - 500) {
         tunnel.dispose();
+        return false;
+      }
+      return true;
+    });
+    
+    // Remove old hazards
+    this.hazards = this.hazards.filter(hazard => {
+      if (hazard.position.z < this.car.position.z - 300) {
+        hazard.dispose();
         return false;
       }
       return true;
@@ -1874,8 +2028,30 @@ export default class InfiniteRoads {
   }
   
   private updateTraffic(dt: number): void {
-    // Spawn new traffic cars
-    if (Math.random() < 0.02 && this.trafficCars.length < this.maxTrafficCars) {
+    // Dynamic traffic density based on time of day
+    const hour = this.currentTime;
+    let trafficMultiplier = 1.0;
+    let maxTrafficForTime = this.maxTrafficCars;
+    
+    // Rush hour (7-9 AM and 5-7 PM) - more traffic
+    if ((hour >= 7 && hour < 9) || (hour >= 17 && hour < 19)) {
+      trafficMultiplier = 2.5;
+      maxTrafficForTime = Math.floor(this.maxTrafficCars * 1.5); // 12 cars max
+    }
+    // Late night (11 PM - 5 AM) - less traffic
+    else if (hour >= 23 || hour < 5) {
+      trafficMultiplier = 0.3;
+      maxTrafficForTime = Math.floor(this.maxTrafficCars * 0.5); // 4 cars max
+    }
+    // Daytime normal traffic
+    else if (hour >= 9 && hour < 17) {
+      trafficMultiplier = 1.2;
+      maxTrafficForTime = this.maxTrafficCars;
+    }
+    
+    // Spawn new traffic cars with time-based probability
+    const spawnChance = 0.02 * trafficMultiplier;
+    if (Math.random() < spawnChance && this.trafficCars.length < maxTrafficForTime) {
       this.spawnTrafficCar();
     }
     
@@ -1884,6 +2060,12 @@ export default class InfiniteRoads {
       // Move car forward
       car.position += car.speed * dt;
       car.mesh.position.z = car.position;
+      
+      // Add headlights at night (6 PM to 6 AM)
+      const isNightTime = hour >= 18 || hour < 6;
+      if (isNightTime && !car.mesh.metadata.hasHeadlights) {
+        this.addHeadlightsToTrafficCar(car);
+      }
       
       // Simple lane changing logic (occasional)
       if (Math.random() < 0.001) {
@@ -1907,6 +2089,34 @@ export default class InfiniteRoads {
       // Slight rotation for realism
       car.mesh.rotation.y = Math.sin(Date.now() * 0.001 + car.position) * 0.02;
     }
+  }
+  
+  private addHeadlightsToTrafficCar(car: TrafficCar): void {
+    // Add point lights for headlights
+    const leftHeadlight = new BABYLON.PointLight(
+      `headlight_L_${Date.now()}`,
+      car.mesh.position.add(new BABYLON.Vector3(-0.7, 0.5, 2)),
+      this.scene
+    );
+    leftHeadlight.intensity = 2;
+    leftHeadlight.range = 12;
+    leftHeadlight.diffuse = new BABYLON.Color3(1.0, 0.95, 0.8);
+    leftHeadlight.parent = car.mesh;
+    
+    const rightHeadlight = new BABYLON.PointLight(
+      `headlight_R_${Date.now()}`,
+      car.mesh.position.add(new BABYLON.Vector3(0.7, 0.5, 2)),
+      this.scene
+    );
+    rightHeadlight.intensity = 2;
+    rightHeadlight.range = 12;
+    rightHeadlight.diffuse = new BABYLON.Color3(1.0, 0.95, 0.8);
+    rightHeadlight.parent = car.mesh;
+    
+    // Mark as having headlights
+    car.mesh.metadata = car.mesh.metadata || {};
+    car.mesh.metadata.hasHeadlights = true;
+    car.mesh.metadata.lights = [leftHeadlight, rightHeadlight];
   }
 
   private updateLighting(): void {
