@@ -18,6 +18,7 @@
  */
 
 import * as BABYLON from '@babylonjs/core';
+import { SpaceExplorerMenu, GameSettings } from './SpaceExplorerMenu';
 
 type CelestialBody = 'planet' | 'star' | 'asteroid' | 'nebula' | 'blackhole' | 'wormhole';
 type PlanetType = 'rocky' | 'gas' | 'ice' | 'lava' | 'earth' | 'desert';
@@ -34,6 +35,22 @@ export default class SpaceExplorer {
   private engine: BABYLON.Engine;
   private scene: BABYLON.Scene;
   private camera: BABYLON.FreeCamera;
+  
+  // Menu System
+  private menu!: SpaceExplorerMenu;
+  private gameSettings: GameSettings = {
+    graphics: 'high',
+    shadows: false,
+    particles: true,
+    postProcessing: true,
+    antialiasing: true,
+    volume: 0.7,
+    musicVolume: 0.5,
+    sfxVolume: 0.8
+  };
+  private gameStarted: boolean = false;
+  private isPaused: boolean = false;
+  private isRunning: boolean = false;
   
   private ship!: BABYLON.Mesh;
   private shipSpeed: number = 0;
@@ -72,12 +89,31 @@ export default class SpaceExplorer {
     this.camera = new BABYLON.FreeCamera('camera', new BABYLON.Vector3(0, 0, 0), this.scene);
     this.camera.attachControl(this.canvas, true);
     
+    // Initialize menu system FIRST
+    this.menu = new SpaceExplorerMenu(
+      containerId,
+      (settings) => this.startGame(settings),
+      () => this.resumeGame(),
+      (settings) => this.applySettings(settings)
+    );
+    
     this.setupInput();
     this.setupScene();
   }
 
   private setupInput(): void {
     window.addEventListener('keydown', (e) => {
+      // ESC key for pause menu
+      if (e.key === 'Escape') {
+        if (this.gameStarted && !this.isPaused) {
+          this.pauseGame();
+        }
+        return;
+      }
+      
+      // Only process game keys if game is started and not paused
+      if (!this.gameStarted || this.isPaused) return;
+      
       this.keys[e.key.toLowerCase()] = true;
       if (e.key === 'f') this.freeCamMode = !this.freeCamMode;
     });
@@ -479,7 +515,18 @@ export default class SpaceExplorer {
 
   setup(): void {
     this.engine.runRenderLoop(() => {
-      this.update(this.engine.getDeltaTime());
+      if (this.isRunning && !this.isPaused && this.gameStarted) {
+        this.update(this.engine.getDeltaTime());
+        
+        // Update HUD with formatted info
+        this.menu.updateHUD({
+          speed: this.shipSpeed,
+          distance: this.info.distanceTraveled / 100, // Convert to light years
+          sector: this.info.currentSector,
+          fps: Math.round(this.engine.getFps()),
+          nearby: this.info.nearestObject
+        });
+      }
       this.scene.render();
     });
     window.addEventListener('resize', () => this.engine.resize());
@@ -522,19 +569,61 @@ export default class SpaceExplorer {
     this.info.speed = Math.round(this.shipSpeed);
   }
 
+  // Menu System Methods
+  private startGame(settings: GameSettings): void {
+    this.gameSettings = settings;
+    this.applySettings(settings);
+    
+    // Show HUD
+    this.menu.showInGameHUD();
+    
+    // Start game loop
+    this.gameStarted = true;
+    this.isRunning = true;
+    this.isPaused = false;
+  }
+  
+  private pauseGame(): void {
+    this.isPaused = true;
+    this.menu.showPauseMenu();
+  }
+  
+  private resumeGame(): void {
+    this.isPaused = false;
+    this.menu.hidePauseMenu();
+  }
+  
+  private applySettings(settings: GameSettings): void {
+    this.gameSettings = settings;
+    
+    // Apply particle settings
+    // nebulae particles handled in updateNearbyObjects
+    
+    // Apply post-processing
+    const pipeline = this.scene.postProcessRenderPipelineManager.supportedPipelines[0] as any;
+    if (pipeline) {
+      pipeline.bloomEnabled = settings.postProcessing;
+      pipeline.fxaaEnabled = settings.antialiasing;
+    }
+  }
+  
   // Required by GamePlay.tsx
   init(): void {
     console.log('[SpaceExplorer] Initializing...');
-    this.isRunning = true;
+    // Menu handles startup
   }
 
   start(): void {
-    console.log('[SpaceExplorer] Starting...');
-    this.isRunning = true;
+    console.log('[SpaceExplorer] Start called - menu handles game start');
   }
 
-  pause(): void {}
-  resume(): void {}
+  pause(): void {
+    this.pauseGame();
+  }
+  
+  resume(): void {
+    this.resumeGame();
+  }
   
   reset(): void {
     this.restart();

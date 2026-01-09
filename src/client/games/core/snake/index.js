@@ -1,20 +1,21 @@
 import BaseGame from '../../shared/framework/BaseGame.js';
 import useSettingsStore from '../../../store/settingsStore';
+import { GameMenu } from '../../shared/GameMenu.js';
 
 /**
- * Classic Snake Game - Retro Style
+ * Enhanced Snake Game - SUPER POLISHED!
  */
 class SnakeGame extends BaseGame {
   constructor(containerId) {
     super(containerId, 'snake', 600, 600);
 
     const settings = useSettingsStore.getState().settings;
-    this.difficulty = settings.gameplay.difficulty || 'normal'; // easy, normal, hard
+    this.difficulty = settings.gameplay.difficulty || 'normal';
 
     // Difficulty settings
     const speedMap = {
       'easy': 8,
-      'normal': 12, // Faster
+      'normal': 12,
       'hard': 18
     };
 
@@ -26,6 +27,14 @@ class SnakeGame extends BaseGame {
     this.apple = { x: 0, y: 0 };
     this.direction = { x: 1, y: 0 };
     this.nextDirection = { x: 1, y: 0 };
+
+    // Enhanced features
+    this.particles = [];
+    this.trail = [];
+    this.menu = new GameMenu(this);
+    this.appleGlow = 0;
+    this.snakeColorIndex = 0;
+    this.rainbowMode = false;
   }
 
   setup() {
@@ -79,6 +88,12 @@ class SnakeGame extends BaseGame {
     this.addKeyHandler(' ', () => {
       this.isPaused ? this.resume() : this.pause();
     });
+    this.addKeyHandler('escape', () => {
+      if (!this.menu.isOpen) {
+        this.pause();
+        this.menu.show('pause');
+      }
+    });
     this.addKeyHandler('r', () => {
       this.reset();
     });
@@ -101,14 +116,16 @@ class SnakeGame extends BaseGame {
 
     // Check wall collision
     if (head.x < 0 || head.x >= this.tileCount || head.y < 0 || head.y >= this.tileCount) {
-      this.endGame('Game Over! Hit the wall 💥');
+      this.pause();
+      this.menu.show('gameover');
       return;
     }
 
     // Check self collision
     for (const segment of this.snake) {
       if (head.x === segment.x && head.y === segment.y) {
-        this.endGame('Game Over! Ate yourself 🐍');
+        this.pause();
+        this.menu.show('gameover');
         return;
       }
     }
@@ -122,156 +139,329 @@ class SnakeGame extends BaseGame {
         this.highScore = this.score;
         this.saveHighScore();
       }
+
+      // CREATE PARTICLES! 🎉
+      this.createAppleParticles(head.x * this.gridSize, head.y * this.gridSize);
+
+      // Screen shake for juice
+      this.shakeScreen(5);
+
       this.spawnApple();
       // Snake grows - don't remove tail
     } else {
       this.snake.pop();
     }
+
+    // Update particles
+    this.updateParticles(deltaTime);
+
+    // Update apple glow animation
+    this.appleGlow = (this.appleGlow + deltaTime * 3) % (Math.PI * 2);
+  }
+
+  createAppleParticles(x, y) {
+    for (let i = 0; i < 15; i++) {
+      this.particles.push({
+        x: x + this.gridSize / 2,
+        y: y + this.gridSize / 2,
+        vx: (Math.random() - 0.5) * 200,
+        vy: (Math.random() - 0.5) * 200,
+        life: 1.0,
+        color: `hsl(${Math.random() * 60 + 10}, 100%, 50%)`
+      });
+    }
+  }
+
+  updateParticles(deltaTime) {
+    this.particles = this.particles.filter(p => {
+      p.x += p.vx * deltaTime;
+      p.y += p.vy * deltaTime;
+      p.vy += 400 * deltaTime; // Gravity
+      p.life -= deltaTime * 2;
+      return p.life > 0;
+    });
+  }
+
+  shakeScreen(intensity) {
+    // Add screen shake effect (implemented in render)
+    this.screenShake = {
+      intensity,
+      duration: 0.2,
+      time: 0
+    };
   }
 
   render() {
+    // Apply screen shake if active
+    if (this.screenShake && this.screenShake.time < this.screenShake.duration) {
+      this.screenShake.time += 0.016; // Assuming 60fps
+      const shake = this.screenShake.intensity * (1 - this.screenShake.time / this.screenShake.duration);
+      this.ctx.save();
+      this.ctx.translate(
+        (Math.random() - 0.5) * shake,
+        (Math.random() - 0.5) * shake
+      );
+    }
+
     this.clearCanvas();
 
-    // Background - retro grid
-    const bgGradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
-    bgGradient.addColorStop(0, '#1E3A5F');
-    bgGradient.addColorStop(1, '#16213E');
-    this.ctx.fillStyle = bgGradient;
+    // Background - Enhanced grid
+    this.ctx.fillStyle = '#1a1a2e';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // Draw grid
-    this.ctx.strokeStyle = 'rgba(78, 205, 196, 0.1)';
+    // Grid lines
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     this.ctx.lineWidth = 1;
-
     for (let i = 0; i <= this.tileCount; i++) {
+      // Vertical lines
       this.ctx.beginPath();
       this.ctx.moveTo(i * this.gridSize, 0);
       this.ctx.lineTo(i * this.gridSize, this.canvas.height);
       this.ctx.stroke();
-
+      // Horizontal lines
       this.ctx.beginPath();
       this.ctx.moveTo(0, i * this.gridSize);
       this.ctx.lineTo(this.canvas.width, i * this.gridSize);
       this.ctx.stroke();
     }
 
-    // Draw snake
-    for (let i = 0; i < this.snake.length; i++) {
-      const segment = this.snake[i];
-      const isHead = i === 0;
+    // Draw snake with gradient and glow
+    this.snake.forEach((segment, index) => {
+      const hue = this.rainbowMode ? (index * 10) % 360 : 120;
+      const alpha = 1 - (index / this.snake.length) * 0.3;
 
-      // Body color gradient based on position
-      const hue = 160 + (i / this.snake.length) * 40;
-      this.ctx.fillStyle = isHead ? '#4ECDC4' : `hsl(${hue}, 70%, 50%)`;
+      // Glow effect
+      this.ctx.shadowBlur = 15;
+      this.ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
 
-      // Rounded rectangle for segments
-      const x = segment.x * this.gridSize + 2;
-      const y = segment.y * this.gridSize + 2;
-      const size = this.gridSize - 4;
-      const radius = isHead ? 8 : 4;
+      // Main segment
+      this.ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${alpha})`;
+      this.ctx.fillRect(
+        segment.x * this.gridSize + 2,
+        segment.y * this.gridSize + 2,
+        this.gridSize - 4,
+        this.gridSize - 4
+      );
 
-      this.ctx.beginPath();
-      this.ctx.roundRect(x, y, size, size, radius);
-      this.ctx.fill();
+      // Shine effect
+      this.ctx.fillStyle = `rgba(255, 255, 255, ${0.3 * alpha})`;
+      this.ctx.fillRect(
+        segment.x * this.gridSize + 4,
+        segment.y * this.gridSize + 4,
+        this.gridSize / 2,
+        this.gridSize / 2
+      );
 
-      // Head highlight
-      if (isHead) {
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        this.ctx.beginPath();
-        this.ctx.arc(x + size / 3, y + size / 3, 4, 0, Math.PI * 2);
-        this.ctx.fill();
+      this.ctx.shadowBlur = 0;
+    });
 
-        // Eyes
-        this.ctx.fillStyle = '#FFFFFF';
-        const eyeOffsetX = this.direction.x * 3;
-        const eyeOffsetY = this.direction.y * 3;
-        this.ctx.beginPath();
-        this.ctx.arc(x + size / 3 + eyeOffsetX, y + size / 3 + eyeOffsetY, 3, 0, Math.PI * 2);
-        this.ctx.arc(x + 2 * size / 3 + eyeOffsetX, y + size / 3 + eyeOffsetY, 3, 0, Math.PI * 2);
-        this.ctx.fill();
+    // Draw apple with glow animation
+    const glowIntensity = Math.sin(this.appleGlow) * 10 + 15;
+    this.ctx.shadowBlur = glowIntensity;
+    this.ctx.shadowColor = '#ff0000';
 
-        // Pupils
-        this.ctx.fillStyle = '#1E3A5F';
-        this.ctx.beginPath();
-        this.ctx.arc(x + size / 3 + eyeOffsetX + this.direction.x, y + size / 3 + eyeOffsetY + this.direction.y, 1.5, 0, Math.PI * 2);
-        this.ctx.arc(x + 2 * size / 3 + eyeOffsetX + this.direction.x, y + size / 3 + eyeOffsetY + this.direction.y, 1.5, 0, Math.PI * 2);
-        this.ctx.fill();
-      }
+    this.ctx.fillStyle = '#ff0000';
+    this.ctx.beginPath();
+    this.ctx.arc(
+      this.apple.x * this.gridSize + this.gridSize / 2,
+      this.apple.y * this.gridSize + this.gridSize / 2,
+      this.gridSize / 2 - 2,
+      0,
+      Math.PI * 2
+    );
+    this.ctx.fill();
+
+    // Apple shine
+    this.ctx.shadowBlur = 0;
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    this.ctx.beginPath();
+    this.ctx.arc(
+      this.apple.x * this.gridSize + this.gridSize / 3,
+      this.apple.y * this.gridSize + this.gridSize / 3,
+      this.gridSize / 6,
+      0,
+      Math.PI * 2
+    );
+    this.ctx.fill();
+
+    // Draw particles
+    this.particles.forEach(p => {
+      this.ctx.fillStyle = p.color;
+      this.ctx.globalAlpha = p.life;
+      this.ctx.fillRect(p.x, p.y, 4, 4);
+      this.ctx.globalAlpha = 1;
+    });
+
+    if (this.screenShake) {
+      this.ctx.restore();
     }
 
-    // Draw apple
-    const appleX = this.apple.x * this.gridSize + this.gridSize / 2;
-    const appleY = this.apple.y * this.gridSize + this.gridSize / 2;
-
-    // Apple glow
-    this.ctx.shadowBlur = 15;
-    this.ctx.shadowColor = '#E63946';
-
-    // Apple body
-    this.ctx.fillStyle = '#E63946';
-    this.ctx.beginPath();
-    this.ctx.arc(appleX, appleY, this.gridSize / 2 - 3, 0, Math.PI * 2);
-    this.ctx.fill();
-
-    this.ctx.shadowBlur = 0;
-
-    // Apple highlight
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    this.ctx.beginPath();
-    this.ctx.arc(appleX - 3, appleY - 3, 4, 0, Math.PI * 2);
-    this.ctx.fill();
-
-    // Apple stem
-    this.ctx.strokeStyle = '#2D6A4F';
-    this.ctx.lineWidth = 2;
-    this.ctx.beginPath();
-    this.ctx.moveTo(appleX, appleY - this.gridSize / 2 + 3);
-    this.ctx.lineTo(appleX + 2, appleY - this.gridSize / 2 - 3);
-    this.ctx.stroke();
-
-    // UI
-    this.ctx.font = 'bold 20px "Comic Sans MS", cursive';
-    this.ctx.fillStyle = '#4ECDC4';
-    this.ctx.textAlign = 'left';
-    this.ctx.fillText(`🐍 Score: ${this.score}`, 15, 30);
-
+    // HUD - Enhanced
+    this.ctx.font = 'bold 20px "Comic Sans MS"';
     this.ctx.fillStyle = '#FFD93D';
-    this.ctx.fillText(`🏆 Best: ${this.highScore}`, 15, 55);
+    this.ctx.strokeStyle = '#2C3E50';
+    this.ctx.lineWidth = 4;
 
-    // Paused overlay
+    const scoreText = `Score: ${this.score}`;
+    this.ctx.strokeText(scoreText, 15, 30);
+    this.ctx.fillText(scoreText, 15, 30);
+
+    const highScoreText = `Best: ${this.highScore}`;
+    this.ctx.strokeText(highScoreText, 15, 60);
+    this.ctx.fillText(highScoreText, 15, 60);
+
     if (this.isPaused) {
+      this.ctx.font = 'bold 48px "Comic Sans MS"';
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-      this.ctx.font = 'bold 48px "Comic Sans MS", cursive';
       this.ctx.fillStyle = '#FFD93D';
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2 - 20);
-
-      this.ctx.font = '20px "Comic Sans MS", cursive';
-      this.ctx.fillStyle = '#FFFFFF';
-      this.ctx.fillText('Press SPACE to resume', this.canvas.width / 2, this.canvas.height / 2 + 30);
+      this.ctx.strokeStyle = '#2C3E50';
+      this.ctx.lineWidth = 6;
+      const pausedText = 'PAUSED';
+      const textWidth = this.ctx.measureText(pausedText).width;
+      this.ctx.strokeText(pausedText, (this.canvas.width - textWidth) / 2, this.canvas.height / 2);
+      this.ctx.fillText(pausedText, (this.canvas.width - textWidth) / 2, this.canvas.height / 2);
     }
   }
+  const bgGradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
+    bgGradient.addColorStop(0, '#1E3A5F');
+    bgGradient.addColorStop(1, '#16213E');
+    this.ctx.fillStyle = bgGradient;
+this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-  spawnApple() {
-    let validPosition = false;
+// Draw grid
+this.ctx.strokeStyle = 'rgba(78, 205, 196, 0.1)';
+this.ctx.lineWidth = 1;
 
-    while (!validPosition) {
-      this.apple = {
-        x: Math.floor(Math.random() * this.tileCount),
-        y: Math.floor(Math.random() * this.tileCount)
-      };
+for (let i = 0; i <= this.tileCount; i++) {
+  this.ctx.beginPath();
+  this.ctx.moveTo(i * this.gridSize, 0);
+  this.ctx.lineTo(i * this.gridSize, this.canvas.height);
+  this.ctx.stroke();
 
-      validPosition = true;
-      for (const segment of this.snake) {
-        if (segment.x === this.apple.x && segment.y === this.apple.y) {
-          validPosition = false;
-          break;
-        }
+  this.ctx.beginPath();
+  this.ctx.moveTo(0, i * this.gridSize);
+  this.ctx.lineTo(this.canvas.width, i * this.gridSize);
+  this.ctx.stroke();
+}
+
+// Draw snake
+for (let i = 0; i < this.snake.length; i++) {
+  const segment = this.snake[i];
+  const isHead = i === 0;
+
+  // Body color gradient based on position
+  const hue = 160 + (i / this.snake.length) * 40;
+  this.ctx.fillStyle = isHead ? '#4ECDC4' : `hsl(${hue}, 70%, 50%)`;
+
+  // Rounded rectangle for segments
+  const x = segment.x * this.gridSize + 2;
+  const y = segment.y * this.gridSize + 2;
+  const size = this.gridSize - 4;
+  const radius = isHead ? 8 : 4;
+
+  this.ctx.beginPath();
+  this.ctx.roundRect(x, y, size, size, radius);
+  this.ctx.fill();
+
+  // Head highlight
+  if (isHead) {
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    this.ctx.beginPath();
+    this.ctx.arc(x + size / 3, y + size / 3, 4, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Eyes
+    this.ctx.fillStyle = '#FFFFFF';
+    const eyeOffsetX = this.direction.x * 3;
+    const eyeOffsetY = this.direction.y * 3;
+    this.ctx.beginPath();
+    this.ctx.arc(x + size / 3 + eyeOffsetX, y + size / 3 + eyeOffsetY, 3, 0, Math.PI * 2);
+    this.ctx.arc(x + 2 * size / 3 + eyeOffsetX, y + size / 3 + eyeOffsetY, 3, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Pupils
+    this.ctx.fillStyle = '#1E3A5F';
+    this.ctx.beginPath();
+    this.ctx.arc(x + size / 3 + eyeOffsetX + this.direction.x, y + size / 3 + eyeOffsetY + this.direction.y, 1.5, 0, Math.PI * 2);
+    this.ctx.arc(x + 2 * size / 3 + eyeOffsetX + this.direction.x, y + size / 3 + eyeOffsetY + this.direction.y, 1.5, 0, Math.PI * 2);
+    this.ctx.fill();
+  }
+}
+
+// Draw apple
+const appleX = this.apple.x * this.gridSize + this.gridSize / 2;
+const appleY = this.apple.y * this.gridSize + this.gridSize / 2;
+
+// Apple glow
+this.ctx.shadowBlur = 15;
+this.ctx.shadowColor = '#E63946';
+
+// Apple body
+this.ctx.fillStyle = '#E63946';
+this.ctx.beginPath();
+this.ctx.arc(appleX, appleY, this.gridSize / 2 - 3, 0, Math.PI * 2);
+this.ctx.fill();
+
+this.ctx.shadowBlur = 0;
+
+// Apple highlight
+this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+this.ctx.beginPath();
+this.ctx.arc(appleX - 3, appleY - 3, 4, 0, Math.PI * 2);
+this.ctx.fill();
+
+// Apple stem
+this.ctx.strokeStyle = '#2D6A4F';
+this.ctx.lineWidth = 2;
+this.ctx.beginPath();
+this.ctx.moveTo(appleX, appleY - this.gridSize / 2 + 3);
+this.ctx.lineTo(appleX + 2, appleY - this.gridSize / 2 - 3);
+this.ctx.stroke();
+
+// UI
+this.ctx.font = 'bold 20px "Comic Sans MS", cursive';
+this.ctx.fillStyle = '#4ECDC4';
+this.ctx.textAlign = 'left';
+this.ctx.fillText(`🐍 Score: ${this.score}`, 15, 30);
+
+this.ctx.fillStyle = '#FFD93D';
+this.ctx.fillText(`🏆 Best: ${this.highScore}`, 15, 55);
+
+// Paused overlay
+if (this.isPaused) {
+  this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+  this.ctx.font = 'bold 48px "Comic Sans MS", cursive';
+  this.ctx.fillStyle = '#FFD93D';
+  this.ctx.textAlign = 'center';
+  this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2 - 20);
+
+  this.ctx.font = '20px "Comic Sans MS", cursive';
+  this.ctx.fillStyle = '#FFFFFF';
+  this.ctx.fillText('Press SPACE to resume', this.canvas.width / 2, this.canvas.height / 2 + 30);
+}
+  }
+
+spawnApple() {
+  let validPosition = false;
+
+  while (!validPosition) {
+    this.apple = {
+      x: Math.floor(Math.random() * this.tileCount),
+      y: Math.floor(Math.random() * this.tileCount)
+    };
+
+    validPosition = true;
+    for (const segment of this.snake) {
+      if (segment.x === this.apple.x && segment.y === this.apple.y) {
+        validPosition = false;
+        break;
       }
     }
   }
+}
 }
 
 export default SnakeGame;
