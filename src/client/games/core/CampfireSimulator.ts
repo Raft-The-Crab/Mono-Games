@@ -18,12 +18,29 @@
  */
 
 import * as BABYLON from '@babylonjs/core';
+import { CampfireSimulatorMenu, GameSettings } from './CampfireSimulatorMenu';
 
 export default class CampfireSimulator {
   private canvas: HTMLCanvasElement;
   private engine: BABYLON.Engine;
   private scene: BABYLON.Scene;
   private camera: BABYLON.ArcRotateCamera;
+  
+  // Menu System
+  private menu!: CampfireSimulatorMenu;
+  private gameSettings: GameSettings = {
+    graphics: 'high',
+    fireIntensity: 0.8,
+    particles: true,
+    postProcessing: true,
+    antialiasing: true,
+    volume: 0.7,
+    fireVolume: 0.8,
+    ambienceVolume: 0.6
+  };
+  private gameStarted: boolean = false;
+  private isPaused: boolean = false;
+  private isRunning: boolean = false;
   
   private fire!: BABYLON.Mesh;
   private fireParticles!: BABYLON.ParticleSystem;
@@ -65,19 +82,41 @@ export default class CampfireSimulator {
     this.camera.lowerRadiusLimit = 5;
     this.camera.upperRadiusLimit = 20;
     
+    // Initialize menu system FIRST
+    this.menu = new CampfireSimulatorMenu(
+      containerId,
+      (settings) => this.startGame(settings),
+      () => this.resumeGame(),
+      (settings) => this.applySettings(settings)
+    );
+    
     this.setupInput();
     this.setupScene();
   }
 
   private setupInput(): void {
     window.addEventListener('keydown', (e) => {
+      // ESC key for pause menu
+      if (e.key === 'Escape') {
+        if (this.gameStarted && !this.isPaused) {
+          this.pauseGame();
+        }
+        return;
+      }
+      
+      // Only process game keys if game is started and not paused
+      if (!this.gameStarted || this.isPaused) return;
+      
       this.keys[e.key.toLowerCase()] = true;
       if (e.key === 'l') this.addLog();
       if (e.key === 'm') this.roastMarshmallow();
+      if (e.key === ' ') this.stokeF ire(); // Space to stoke fire
     });
     window.addEventListener('keyup', (e) => this.keys[e.key.toLowerCase()] = false);
     
-    this.canvas.addEventListener('click', () => this.roastMarshmallow());
+    this.canvas.addEventListener('click', () => {
+      if (this.gameStarted && !this.isPaused) this.roastMarshmallow();
+    });
   }
 
   private setupScene(): void {
@@ -494,20 +533,83 @@ export default class CampfireSimulator {
     this.info.moonPhase = phases[Math.floor(this.moonPhase * 8)];
     this.info.fireStrength = Math.round(this.fireIntensity);
   }
+  
+  // Stoke the fire to increase intensity
+  private stokeFire(): void {
+    if (this.fireIntensity < 100) {
+      this.fireIntensity = Math.min(100, this.fireIntensity + 10);
+      this.info.fireStrength = Math.round(this.fireIntensity);
+    }
+  }
+
+  // Menu System Methods
+  private startGame(settings: GameSettings): void {
+    this.gameSettings = settings;
+    this.applySettings(settings);
+    
+    // Show HUD
+    this.menu.showInGameHUD();
+    
+    // Start game loop
+    this.gameStarted = true;
+    this.isRunning = true;
+    this.isPaused = false;
+  }
+  
+  private pauseGame(): void {
+    this.isPaused = true;
+    this.menu.showPauseMenu();
+  }
+  
+  private resumeGame(): void {
+    this.isPaused = false;
+    this.menu.hidePauseMenu();
+  }
+  
+  private applySettings(settings: GameSettings): void {
+    this.gameSettings = settings;
+    
+    // Apply fire intensity
+    const fireLight = this.scene.getLightByName('fireLight') as BABYLON.PointLight;
+    if (fireLight) {
+      fireLight.intensity = 5 * settings.fireIntensity;
+    }
+    
+    // Apply particle settings
+    if (!settings.particles) {
+      this.fireParticles?.stop();
+      this.smokeParticles?.stop();
+      this.sparksParticles?.stop();
+    } else {
+      this.fireParticles?.start();
+      this.smokeParticles?.start();
+      this.sparksParticles?.start();
+    }
+    
+    // Apply post-processing
+    const glow = this.scene.effectLayers.find(e => e.name === 'glow') as BABYLON.GlowLayer;
+    if (glow) {
+      glow.intensity = settings.postProcessing ? 1.0 : 0.3;
+    }
+  }
 
   // Required by GamePlay.tsx
   init(): void {
     console.log('[CampfireSimulator] Initializing...');
-    this.isRunning = true;
+    // Menu handles startup
   }
 
   start(): void {
-    console.log('[CampfireSimulator] Starting...');
-    this.isRunning = true;
+    console.log('[CampfireSimulator] Start called - menu handles game start');
   }
 
-  pause(): void {}
-  resume(): void {}
+  pause(): void {
+    this.pauseGame();
+  }
+  
+  resume(): void {
+    this.resumeGame();
+  }
   
   reset(): void {
     this.restart();
