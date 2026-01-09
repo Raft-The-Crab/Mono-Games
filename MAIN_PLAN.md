@@ -35,18 +35,22 @@
   - API backend (authentication, leaderboards, cloud saves)
 - **Limits:** 
   - 100GB bandwidth/month
+  - 100,000 function invocations/month
   - Serverless functions (12 second timeout)
-- **Why it's enough:** Most players use offline mode, API calls are minimal
+  - Concurrent executions: 10
+- **Why it's enough:** Most players use offline mode, API calls are minimal (~10-20 per user session)
 
 #### 2. **MongoDB Atlas (Free Tier)**
 - **Cost:** $0/month
 - **Storage:** 512MB
 - **What we store:**
-  - User accounts
-  - Leaderboard scores
-  - Cloud saves (compressed)
-  - Achievements
-- **Why it's enough:** 512MB = ~50,000 users with saves
+  - User accounts (~2KB each)
+  - Leaderboard scores (~500 bytes each)
+  - Cloud saves (compressed ~5KB each)
+  - Achievements (~100 bytes each)
+- **Why it's enough:** 512MB = ~50,000 users with full data
+  - Calculation: 2KB (account) + 5KB (saves) + 1KB (scores/achievements) = ~10KB per user
+  - 512MB / 10KB = ~51,200 users capacity
 
 #### 3. **GitHub (Free)**
 - **Cost:** $0/month
@@ -59,11 +63,14 @@
 #### 4. **Upstash Redis (Free Tier)**
 - **Cost:** $0/month
 - **Storage:** 256MB RAM
+- **Limits:** 10,000 requests/day
 - **What we cache:**
-  - Leaderboard rankings
-  - Active sessions
+  - Leaderboard rankings (refreshed hourly)
+  - Active sessions (short-lived)
   - Rate limiting data
-- **Why it's enough:** RAM cache for hot data only
+- **Why it's enough:** RAM cache for hot data only, ~350 requests/day per active user
+  - 10,000 requests/day = ~30 concurrent active users
+  - Inactive users read from MongoDB (slower but acceptable)
 
 ---
 
