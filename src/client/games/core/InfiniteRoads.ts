@@ -76,11 +76,11 @@ export default class InfiniteRoads {
   private carPosition: number = 0; // -1 to 1 (left to right)
   private carRotation: number = 0;
   private carTilt: number = 0; // For bike leaning
-  private driftPower: number = 0;
+  // private _driftPower: number = 0; // Reserved for future drift mechanics
   
   // Physics
-  private velocity: BABYLON.Vector3 = BABYLON.Vector3.Zero();
-  private suspension: number = 0;
+  // private _velocity: BABYLON.Vector3 = BABYLON.Vector3.Zero(); // Reserved for physics
+  // private _suspension: number = 0; // Reserved for suspension
   private wheelRotation: number = 0;
   private wheels: BABYLON.Mesh[] = [];
   
@@ -104,6 +104,21 @@ export default class InfiniteRoads {
   private trafficCars: TrafficCar[] = [];
   private maxTrafficCars: number = 8;
   private trafficSpawnDistance: number = 150;
+  
+  // Bridges & Tunnels 🌉
+  private bridges: BABYLON.Mesh[] = [];
+  private tunnels: BABYLON.Mesh[] = [];
+  // private inTunnel: boolean = false; // Reserved for tunnel logic
+  private bridgeChance: number = 0.03; // 3% chance per segment
+  private tunnelChance: number = 0.02; // 2% chance per segment
+  
+  // Road Hazards ⚠️
+  private hazards: BABYLON.Mesh[] = [];
+  private hazardChance: number = 0.05; // 5% chance per segment
+  
+  // Emergency Vehicles 🚓🚑🚒
+  private emergencyVehicles: TrafficCar[] = [];
+  private emergencySpawnTimer: number = 0;
   
   
   // Lighting & Post-Processing
@@ -134,7 +149,7 @@ export default class InfiniteRoads {
   private tireScreechSound!: BABYLON.Sound;
   private biomeAmbience!: BABYLON.Sound;
   private radioSound!: BABYLON.Sound;
-  private baseEngineFrequency: number = 1.0;
+  // private baseEngineFrequency: number = 1.0; // Reserved for audio
   private radioStations: string[] = [
     'Chill Beats Radio',
     'Highway Jazz',
@@ -157,9 +172,9 @@ export default class InfiniteRoads {
   
   // Effects & Scenery
   private clouds: BABYLON.Mesh[] = [];
-  private wildlife: BABYLON.Mesh[] = [];
-  private buildings: BABYLON.Mesh[] = [];
-  private signs: BABYLON.Mesh[] = [];
+  // private wildlife: BABYLON.Mesh[] = []; // Reserved for future feature
+  // private buildings: BABYLON.Mesh[] = []; // Reserved for future feature
+  // private signs: BABYLON.Mesh[] = []; // Reserved for future feature
   
   // State
   private isRunning: boolean = false;
@@ -177,8 +192,8 @@ export default class InfiniteRoads {
   
   
   // Camera
-  private cameraViews: Array<{ name: string; alpha: number; beta: number; radius: number; }> = [];
-  private currentCameraView: number = 0;
+  // Reserved for future: cameraViews array
+  // private currentCameraView: number = 0; // Reserved
   
   // UI Info (NO SCORING - Just info for immersion)
   public info = {
@@ -1043,6 +1058,25 @@ export default class InfiniteRoads {
     
     this.roadSegments.push({ mesh: roadMesh, curve: this.roadCurve, elevation: this.roadElevation, index });
     
+    // Check for bridge/tunnel generation
+    const shouldGenerateBridge = Math.random() < this.bridgeChance && this.roadElevation < -5;
+    const shouldGenerateTunnel = Math.random() < this.tunnelChance && this.roadElevation > 10;
+    
+    if (shouldGenerateBridge) {
+      this.createBridge(index, this.roadCurve, this.roadElevation, z);
+      this.roadSegments[this.roadSegments.length - 1].hasBridge = true;
+    }
+    
+    if (shouldGenerateTunnel) {
+      this.createTunnel(index, this.roadCurve, this.roadElevation, z);
+      this.roadSegments[this.roadSegments.length - 1].hasTunnel = true;
+    }
+    
+    // Check for hazard generation (not on bridges/tunnels)
+    if (!shouldGenerateBridge && !shouldGenerateTunnel && Math.random() < this.hazardChance) {
+      this.createRoadHazard(index, this.roadCurve, this.roadElevation, z);
+    }
+    
     // Enhanced terrain generation
     this.generateTerrain(index, this.roadCurve, this.roadElevation, z);
     
@@ -1255,6 +1289,305 @@ export default class InfiniteRoads {
     }
   }
 
+  private createBridge(index: number, centerX: number, centerY: number, z: number): void {
+    // Bridge structure spanning a valley
+    const bridgeLength = this.segmentLength * 3;
+    
+    // Main bridge deck
+    const deck = BABYLON.MeshBuilder.CreateBox(`bridgeDeck_${index}`, {
+      width: this.roadWidth + 2,
+      height: 0.5,
+      depth: bridgeLength
+    }, this.scene);
+    deck.position.x = centerX;
+    deck.position.y = centerY - 0.3;
+    deck.position.z = z + bridgeLength / 2;
+    
+    const deckMat = new BABYLON.StandardMaterial(`deckMat_${index}`, this.scene);
+    deckMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.45);
+    deckMat.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+    deckMat.specularPower = 64;
+    deck.material = deckMat;
+    
+    // Support pillars (4 on each side)
+    for (let i = 0; i < 4; i++) {
+      for (const side of [-1, 1]) {
+        const pillar = BABYLON.MeshBuilder.CreateCylinder(`pillar_${index}_${i}_${side}`, {
+          diameter: 1.5,
+          height: Math.abs(centerY) + 10,
+          tessellation: 12
+        }, this.scene);
+        
+        pillar.position.x = centerX + side * (this.roadWidth / 2 + 1);
+        pillar.position.y = centerY - Math.abs(centerY) / 2 - 5;
+        pillar.position.z = z + (i + 0.5) * (bridgeLength / 4);
+        
+        const pillarMat = new BABYLON.StandardMaterial(`pillarMat_${index}_${i}_${side}`, this.scene);
+        pillarMat.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.52);
+        pillarMat.specularColor = new BABYLON.Color3(0.6, 0.6, 0.6);
+        pillarMat.specularPower = 96;
+        pillar.material = pillarMat;
+        
+        this.bridges.push(pillar);
+      }
+    }
+    
+    // Cable support towers (2 main towers)
+    for (let i = 0; i < 2; i++) {
+      for (const side of [-1, 1]) {
+        const tower = BABYLON.MeshBuilder.CreateBox(`tower_${index}_${i}_${side}`, {
+          width: 1,
+          height: 15,
+          depth: 1
+        }, this.scene);
+        
+        tower.position.x = centerX + side * (this.roadWidth / 2 + 1);
+        tower.position.y = centerY + 7;
+        tower.position.z = z + (i + 0.5) * bridgeLength / 1.5;
+        
+        const towerMat = new BABYLON.StandardMaterial(`towerMat_${index}_${i}_${side}`, this.scene);
+        towerMat.diffuseColor = new BABYLON.Color3(0.6, 0.15, 0.15);
+        towerMat.specularColor = new BABYLON.Color3(0.7, 0.2, 0.2);
+        towerMat.specularPower = 128;
+        tower.material = towerMat;
+        
+        this.bridges.push(tower);
+      }
+    }
+    
+    // Suspension cables (decorative)
+    for (let i = 0; i < 10; i++) {
+      for (const side of [-1, 1]) {
+        const cable = BABYLON.MeshBuilder.CreateCylinder(`cable_${index}_${i}_${side}`, {
+          diameter: 0.1,
+          height: 10,
+          tessellation: 6
+        }, this.scene);
+        
+        cable.position.x = centerX + side * (this.roadWidth / 2);
+        cable.position.y = centerY + 5;
+        cable.position.z = z + (i + 0.5) * (bridgeLength / 10);
+        cable.rotation.x = Math.PI / 6;
+        
+        const cableMat = new BABYLON.StandardMaterial(`cableMat_${index}_${i}_${side}`, this.scene);
+        cableMat.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.35);
+        cableMat.specularColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+        cableMat.specularPower = 256;
+        cable.material = cableMat;
+        
+        this.bridges.push(cable);
+      }
+    }
+    
+    this.bridges.push(deck);
+    console.log(`🌉 Bridge constructed at ${z.toFixed(0)}m`);
+  }
+
+  private createTunnel(index: number, centerX: number, centerY: number, z: number): void {
+    // Tunnel entrance and passage through mountain
+    const tunnelLength = this.segmentLength * 5;
+    
+    // Main tunnel tube
+    const tunnel = BABYLON.MeshBuilder.CreateCylinder(`tunnel_${index}`, {
+      diameter: this.roadWidth + 6,
+      height: tunnelLength,
+      tessellation: 24,
+      arc: 0.5 // Half cylinder for tunnel
+    }, this.scene);
+    tunnel.position.x = centerX;
+    tunnel.position.y = centerY + (this.roadWidth + 6) / 4;
+    tunnel.position.z = z + tunnelLength / 2;
+    tunnel.rotation.x = Math.PI / 2;
+    tunnel.rotation.z = Math.PI;
+    
+    const tunnelMat = new BABYLON.StandardMaterial(`tunnelMat_${index}`, this.scene);
+    tunnelMat.diffuseColor = new BABYLON.Color3(0.25, 0.25, 0.27);
+    tunnelMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    tunnelMat.specularPower = 32;
+    tunnel.material = tunnelMat;
+    
+    // Tunnel entrance arch
+    const entrance = BABYLON.MeshBuilder.CreateTorus(`tunnelEntrance_${index}`, {
+      diameter: this.roadWidth + 4,
+      thickness: 1.5,
+      tessellation: 24
+    }, this.scene);
+    entrance.position.x = centerX;
+    entrance.position.y = centerY + (this.roadWidth + 4) / 4;
+    entrance.position.z = z;
+    entrance.rotation.z = Math.PI;
+    
+    const entranceMat = new BABYLON.StandardMaterial(`entranceMat_${index}`, this.scene);
+    entranceMat.diffuseColor = new BABYLON.Color3(0.3, 0.25, 0.2);
+    entranceMat.specularColor = new BABYLON.Color3(0.4, 0.35, 0.3);
+    entranceMat.specularPower = 64;
+    entrance.material = entranceMat;
+    
+    // Tunnel lights (every 10m)
+    for (let i = 0; i < tunnelLength / 10; i++) {
+      for (const side of [-1, 1]) {
+        const light = BABYLON.MeshBuilder.CreateSphere(`tunnelLight_${index}_${i}_${side}`, {
+          diameter: 0.5,
+          segments: 8
+        }, this.scene);
+        
+        light.position.x = centerX + side * (this.roadWidth / 2 - 1);
+        light.position.y = centerY + 4;
+        light.position.z = z + i * 10;
+        
+        const lightMat = new BABYLON.StandardMaterial(`lightMat_${index}_${i}_${side}`, this.scene);
+        lightMat.emissiveColor = new BABYLON.Color3(1.0, 0.9, 0.7);
+        lightMat.diffuseColor = new BABYLON.Color3(1.0, 0.9, 0.7);
+        light.material = lightMat;
+        
+        // Add point light for illumination
+        const pointLight = new BABYLON.PointLight(`tunnelPointLight_${index}_${i}_${side}`, light.position, this.scene);
+        pointLight.intensity = 0.8;
+        pointLight.range = 15;
+        pointLight.diffuse = new BABYLON.Color3(1.0, 0.9, 0.7);
+        
+        this.tunnels.push(light);
+      }
+    }
+    
+    // Exit arch
+    const exit = entrance.clone(`tunnelExit_${index}`);
+    exit.position.z = z + tunnelLength;
+    
+    this.tunnels.push(tunnel, entrance, exit);
+    console.log(`🚇 Tunnel constructed at ${z.toFixed(0)}m`);
+  }
+  
+  private createRoadHazard(index: number, centerX: number, centerY: number, z: number): void {
+    const hazardTypes = ['rocks', 'debris', 'pothole', 'construction'];
+    const hazardType = hazardTypes[Math.floor(Math.random() * hazardTypes.length)];
+    
+    if (hazardType === 'rocks') {
+      // Fallen rocks on the road
+      const rockCount = 2 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < rockCount; i++) {
+        const rock = BABYLON.MeshBuilder.CreateSphere(`rock_hazard_${index}_${i}`, {
+          diameter: 0.8 + Math.random() * 1.2,
+          segments: 8
+        }, this.scene);
+        
+        rock.position.x = centerX + (Math.random() - 0.5) * (this.roadWidth - 2);
+        rock.position.y = centerY + 0.5;
+        rock.position.z = z + (Math.random() - 0.5) * this.segmentLength * 0.5;
+        rock.scaling.y = 0.6 + Math.random() * 0.3;
+        
+        const rockMat = new BABYLON.StandardMaterial(`rockHazardMat_${index}_${i}`, this.scene);
+        rockMat.diffuseColor = new BABYLON.Color3(0.4, 0.4, 0.42);
+        rockMat.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+        rock.material = rockMat;
+        
+        this.hazards.push(rock);
+      }
+      console.log(`🪨 Fallen rocks at ${z.toFixed(0)}m`);
+    }
+    else if (hazardType === 'debris') {
+      // Road debris (boxes, scattered objects)
+      const debrisCount = 3 + Math.floor(Math.random() * 4);
+      for (let i = 0; i < debrisCount; i++) {
+        const debris = BABYLON.MeshBuilder.CreateBox(`debris_${index}_${i}`, {
+          width: 0.3 + Math.random() * 0.5,
+          height: 0.3 + Math.random() * 0.5,
+          depth: 0.3 + Math.random() * 0.5
+        }, this.scene);
+        
+        debris.position.x = centerX + (Math.random() - 0.5) * (this.roadWidth - 2);
+        debris.position.y = centerY + 0.3;
+        debris.position.z = z + (Math.random() - 0.5) * this.segmentLength * 0.6;
+        debris.rotation.x = Math.random() * Math.PI;
+        debris.rotation.y = Math.random() * Math.PI;
+        debris.rotation.z = Math.random() * Math.PI;
+        
+        const debrisMat = new BABYLON.StandardMaterial(`debrisMat_${index}_${i}`, this.scene);
+        debrisMat.diffuseColor = new BABYLON.Color3(0.5 + Math.random() * 0.3, 0.3, 0.1);
+        debris.material = debrisMat;
+        
+        this.hazards.push(debris);
+      }
+      console.log(`📦 Debris scattered at ${z.toFixed(0)}m`);
+    }
+    else if (hazardType === 'pothole') {
+      // Pothole (dark circle on road)
+      const pothole = BABYLON.MeshBuilder.CreateCylinder(`pothole_${index}`, {
+        diameter: 1.5 + Math.random(),
+        height: 0.15,
+        tessellation: 12
+      }, this.scene);
+      
+      const lane = Math.floor(Math.random() * 3) - 1;
+      pothole.position.x = centerX + lane * 3;
+      pothole.position.y = centerY - 0.05;
+      pothole.position.z = z + (Math.random() - 0.5) * this.segmentLength * 0.3;
+      
+      const potholeMat = new BABYLON.StandardMaterial(`potholeMat_${index}`, this.scene);
+      potholeMat.diffuseColor = new BABYLON.Color3(0.05, 0.05, 0.06);
+      potholeMat.specularColor = new BABYLON.Color3(0, 0, 0);
+      pothole.material = potholeMat;
+      
+      this.hazards.push(pothole);
+      console.log(`🕳️ Pothole in lane ${lane} at ${z.toFixed(0)}m`);
+    }
+    else if (hazardType === 'construction') {
+      // Construction zone with cones and signs
+      const coneCount = 4 + Math.floor(Math.random() * 3);
+      const side = Math.random() > 0.5 ? 1 : -1;
+      
+      for (let i = 0; i < coneCount; i++) {
+        const cone = BABYLON.MeshBuilder.CreateCylinder(`cone_${index}_${i}`, {
+          diameterTop: 0.2,
+          diameterBottom: 0.4,
+          height: 0.8,
+          tessellation: 8
+        }, this.scene);
+        
+        cone.position.x = centerX + side * (this.roadWidth / 2 - 2);
+        cone.position.y = centerY + 0.4;
+        cone.position.z = z + i * (this.segmentLength / coneCount);
+        
+        const coneMat = new BABYLON.StandardMaterial(`coneMat_${index}_${i}`, this.scene);
+        coneMat.diffuseColor = new BABYLON.Color3(1.0, 0.4, 0.0);
+        coneMat.emissiveColor = new BABYLON.Color3(0.5, 0.2, 0.0);
+        cone.material = coneMat;
+        
+        this.hazards.push(cone);
+      }
+      
+      // Warning sign
+      const signPost = BABYLON.MeshBuilder.CreateCylinder(`signPost_${index}`, {
+        diameter: 0.1,
+        height: 2
+      }, this.scene);
+      signPost.position.x = centerX + side * (this.roadWidth / 2 - 1.5);
+      signPost.position.y = centerY + 1;
+      signPost.position.z = z;
+      
+      const signBoard = BABYLON.MeshBuilder.CreateBox(`signBoard_${index}`, {
+        width: 1,
+        height: 1,
+        depth: 0.1
+      }, this.scene);
+      signBoard.position.x = signPost.position.x;
+      signBoard.position.y = signPost.position.y + 1.2;
+      signBoard.position.z = signPost.position.z;
+      
+      const signMat = new BABYLON.StandardMaterial(`constructionSignMat_${index}`, this.scene);
+      signMat.diffuseColor = new BABYLON.Color3(1.0, 0.8, 0.0);
+      signMat.emissiveColor = new BABYLON.Color3(0.5, 0.4, 0.0);
+      signBoard.material = signMat;
+      
+      const postMat = new BABYLON.StandardMaterial(`postMat_${index}`, this.scene);
+      postMat.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+      signPost.material = postMat;
+      
+      this.hazards.push(signPost, signBoard);
+      console.log(`🚧 Construction zone at ${z.toFixed(0)}m`);
+    }
+  }
+
   private generateClouds(): void {
     for (let i = 0; i < 30; i++) {
       // Create cloud from multiple spheres for realistic shape
@@ -1443,6 +1776,15 @@ export default class InfiniteRoads {
     this.updateParticles();
     this.updateInfo();
     
+    // Weather transition system
+    this.updateWeatherTransition(dt);
+    
+    // Update traffic cars
+    this.updateTraffic(dt);
+    
+    // Update audio based on speed and game state
+    this.updateAudio();
+    
     // FPS counter
     this.info.fps = Math.round(this.engine.getFps());
   }
@@ -1573,15 +1915,6 @@ export default class InfiniteRoads {
       const shakeY = (Math.random() - 0.5) * this.cameraShake;
       this.camera.target.addInPlace(new BABYLON.Vector3(shakeX, shakeY, 0));
     }
-    
-    // Weather transition system
-    this.updateWeatherTransition(dt);
-    
-    // Update traffic cars
-    this.updateTraffic(dt);
-    
-    // Update audio based on speed and game state
-    this.updateAudio();
   }
 
   private removeOldSegments(): void {
@@ -1603,7 +1936,39 @@ export default class InfiniteRoads {
     // Remove traffic cars that are too far behind
     this.trafficCars = this.trafficCars.filter(car => {
       if (car.position < this.distanceTraveled - 200) {
+        // Dispose of headlights if they exist
+        if (car.mesh.metadata?.lights) {
+          for (const light of car.mesh.metadata.lights) {
+            light.dispose();
+          }
+        }
         car.mesh.dispose();
+        return false;
+      }
+      return true;
+    });
+    
+    // Remove old bridges and tunnels
+    this.bridges = this.bridges.filter(bridge => {
+      if (bridge.position.z < this.car.position.z - 500) {
+        bridge.dispose();
+        return false;
+      }
+      return true;
+    });
+    
+    this.tunnels = this.tunnels.filter(tunnel => {
+      if (tunnel.position.z < this.car.position.z - 500) {
+        tunnel.dispose();
+        return false;
+      }
+      return true;
+    });
+    
+    // Remove old hazards
+    this.hazards = this.hazards.filter(hazard => {
+      if (hazard.position.z < this.car.position.z - 300) {
+        hazard.dispose();
         return false;
       }
       return true;
@@ -1666,9 +2031,38 @@ export default class InfiniteRoads {
   }
   
   private updateTraffic(dt: number): void {
-    // Spawn new traffic cars
-    if (Math.random() < 0.02 && this.trafficCars.length < this.maxTrafficCars) {
+    // Dynamic traffic density based on time of day
+    const hour = this.currentTime;
+    let trafficMultiplier = 1.0;
+    let maxTrafficForTime = this.maxTrafficCars;
+    
+    // Rush hour (7-9 AM and 5-7 PM) - more traffic
+    if ((hour >= 7 && hour < 9) || (hour >= 17 && hour < 19)) {
+      trafficMultiplier = 2.5;
+      maxTrafficForTime = Math.floor(this.maxTrafficCars * 1.5); // 12 cars max
+    }
+    // Late night (11 PM - 5 AM) - less traffic
+    else if (hour >= 23 || hour < 5) {
+      trafficMultiplier = 0.3;
+      maxTrafficForTime = Math.floor(this.maxTrafficCars * 0.5); // 4 cars max
+    }
+    // Daytime normal traffic
+    else if (hour >= 9 && hour < 17) {
+      trafficMultiplier = 1.2;
+      maxTrafficForTime = this.maxTrafficCars;
+    }
+    
+    // Spawn new traffic cars with time-based probability
+    const spawnChance = 0.02 * trafficMultiplier;
+    if (Math.random() < spawnChance && this.trafficCars.length < maxTrafficForTime) {
       this.spawnTrafficCar();
+    }
+    
+    // Spawn emergency vehicles occasionally
+    this.emergencySpawnTimer -= dt;
+    if (this.emergencySpawnTimer <= 0 && Math.random() < 0.1) {
+      this.spawnEmergencyVehicle();
+      this.emergencySpawnTimer = 30 + Math.random() * 60; // Every 30-90 seconds
     }
     
     // Update existing traffic
@@ -1676,6 +2070,12 @@ export default class InfiniteRoads {
       // Move car forward
       car.position += car.speed * dt;
       car.mesh.position.z = car.position;
+      
+      // Add headlights at night (6 PM to 6 AM)
+      const isNightTime = hour >= 18 || hour < 6;
+      if (isNightTime && !car.mesh.metadata.hasHeadlights) {
+        this.addHeadlightsToTrafficCar(car);
+      }
       
       // Simple lane changing logic (occasional)
       if (Math.random() < 0.001) {
@@ -1699,6 +2099,92 @@ export default class InfiniteRoads {
       // Slight rotation for realism
       car.mesh.rotation.y = Math.sin(Date.now() * 0.001 + car.position) * 0.02;
     }
+  }
+  
+  private addHeadlightsToTrafficCar(car: TrafficCar): void {
+    // Add point lights for headlights
+    const leftHeadlight = new BABYLON.PointLight(
+      `headlight_L_${Date.now()}`,
+      car.mesh.position.add(new BABYLON.Vector3(-0.7, 0.5, 2)),
+      this.scene
+    );
+    leftHeadlight.intensity = 2;
+    leftHeadlight.range = 12;
+    leftHeadlight.diffuse = new BABYLON.Color3(1.0, 0.95, 0.8);
+    leftHeadlight.parent = car.mesh;
+    
+    const rightHeadlight = new BABYLON.PointLight(
+      `headlight_R_${Date.now()}`,
+      car.mesh.position.add(new BABYLON.Vector3(0.7, 0.5, 2)),
+      this.scene
+    );
+    rightHeadlight.intensity = 2;
+    rightHeadlight.range = 12;
+    rightHeadlight.diffuse = new BABYLON.Color3(1.0, 0.95, 0.8);
+    rightHeadlight.parent = car.mesh;
+    
+    // Mark as having headlights
+    car.mesh.metadata = car.mesh.metadata || {};
+    car.mesh.metadata.hasHeadlights = true;
+    car.mesh.metadata.lights = [leftHeadlight, rightHeadlight];
+  }
+  
+  private spawnEmergencyVehicle(): void {
+    const types = ['police', 'ambulance', 'firetruck'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    let vehicleMesh: BABYLON.Mesh;
+    let color: BABYLON.Color3;
+    let lightColor: BABYLON.Color3;
+    
+    if (type === 'police') {
+      vehicleMesh = BABYLON.MeshBuilder.CreateBox('police', { width: 2.2, height: 1.8, depth: 4.5 }, this.scene);
+      color = new BABYLON.Color3(0.0, 0.0, 0.0); // Black and white
+      lightColor = new BABYLON.Color3(1.0, 0.0, 0.0); // Red and blue
+      console.log('🚓 Police car approaching!');
+    } else if (type === 'ambulance') {
+      vehicleMesh = BABYLON.MeshBuilder.CreateBox('ambulance', { width: 2.5, height: 2.5, depth: 5 }, this.scene);
+      color = new BABYLON.Color3(1.0, 1.0, 1.0); // White
+      lightColor = new BABYLON.Color3(1.0, 0.0, 0.0); // Red
+      console.log('🚑 Ambulance passing through!');
+    } else {
+      vehicleMesh = BABYLON.MeshBuilder.CreateBox('firetruck', { width: 2.8, height: 3.2, depth: 6 }, this.scene);
+      color = new BABYLON.Color3(0.9, 0.1, 0.0); // Red
+      lightColor = new BABYLON.Color3(1.0, 0.0, 0.0);
+      console.log('🚒 Fire truck on emergency call!');
+    }
+    
+    const mat = new BABYLON.StandardMaterial('emergencyMat', this.scene);
+    mat.diffuseColor = color;
+    mat.specularColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+    mat.specularPower = 128;
+    vehicleMesh.material = mat;
+    
+    // Add flashing lights
+    const light1 = new BABYLON.PointLight(`siren_${Date.now()}`, vehicleMesh.position, this.scene);
+    light1.intensity = 5;
+    light1.range = 25;
+    light1.diffuse = lightColor;
+    light1.parent = vehicleMesh;
+    
+    const lane = Math.floor(Math.random() * 3) - 1;
+    const spawnDistance = this.distanceTraveled + this.trafficSpawnDistance + Math.random() * 50;
+    
+    vehicleMesh.position.y = 1;
+    vehicleMesh.position.z = spawnDistance;
+    
+    const trafficCar: TrafficCar = {
+      mesh: vehicleMesh,
+      speed: this.carSpeed * 1.5, // Emergency vehicles go faster
+      lane: lane,
+      position: spawnDistance,
+      type: 'suv'
+    };
+    
+    vehicleMesh.metadata = { isEmergency: true, lights: [light1], flashPhase: 0 };
+    
+    this.emergencyVehicles.push(trafficCar);
+    this.trafficCars.push(trafficCar);
   }
 
   private updateLighting(): void {
@@ -2349,6 +2835,8 @@ interface RoadSegment {
   curve: number;
   elevation: number;
   index: number;
+  hasBridge?: boolean;
+  hasTunnel?: boolean;
 }
 
 interface TerrainChunk {

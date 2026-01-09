@@ -11,7 +11,7 @@
 
 export class InfiniteRoadsMenu {
   private container: HTMLElement;
-  private currentScreen: 'main' | 'cars' | 'settings' | 'controls' | 'playing' | 'paused' = 'main';
+  // Reserved for future: currentScreen state tracking
   private onStartGame: (carIndex: number, settings: GameSettings) => void;
   private onResumeGame: () => void;
   private onSettingsChange: (settings: GameSettings) => void;
@@ -911,14 +911,15 @@ export interface GameSettings {
   sfxVolume: number;
 }
 
-interface RoadSegment {
-  mesh: BABYLON.Mesh;
-  curve: number;
-  elevation: number;
-  index: number;
-}
+// Unused interfaces - commenting out to remove errors
+// interface RoadSegment {
+//   mesh: BABYLON.Mesh;
+//   curve: number;
+//   elevation: number;
+//   index: number;
+// }
 
-interface TerrainChunk {
-  mesh: BABYLON.Mesh;
-  index: number;
-}
+// interface TerrainChunk {
+//   mesh: BABYLON.Mesh;
+//   index: number;
+// }

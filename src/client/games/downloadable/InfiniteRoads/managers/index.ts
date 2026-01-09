@@ -2,33 +2,33 @@
 import * as BABYLON from '@babylonjs/core';
 
 export class WeatherManager {
-  constructor(private scene: BABYLON.Scene) {}
-  update(dt: number, pos: BABYLON.Vector3) {}
-  setWeather(weather: string) {}
+  constructor(private _scene: BABYLON.Scene) {}
+  update(_dt: number, _pos: BABYLON.Vector3) {}
+  setWeather(_weather: string) {}
   cycleWeather() {}
   getCurrentWeather() { return 'Clear'; }
 }
 
 export class UIManager {
-  constructor(private game: any, private settings: any) {}
-  update(info: any) {}
+  constructor(private _game: any, private _settings: any) {}
+  update(_info: any) {}
   toggleMenu() {}
   togglePauseMenu() {}
   openPhotoMode() {}
-  showAchievement(id: string) {}
+  showAchievement(_id: string) {}
 }
 
 export class AudioManager {
-  constructor(private scene: BABYLON.Scene) {}
+  constructor(private _scene: BABYLON.Scene) {}
   play() {}
   pause() {}
   resume() {}
   stop() {}
-  update(dt: number, speed: number) {}
-  playAmbient(biome: string) {}
-  setRadioStation(station: number) {}
+  update(_dt: number, _speed: number) {}
+  playAmbient(_biome: string) {}
+  setRadioStation(_station: number) {}
   nextRadioStation() {}
-  setVolumes(settings: any) {}
+  setVolumes(_settings: any) {}
 }
 
 export class CameraManager {
@@ -73,18 +73,18 @@ export class CameraManager {
     this.setMode(modes[(current + 1) % modes.length]);
   }
   
-  zoom(delta: number) {
-    this.camera.radius += delta;
+  zoom(_delta: number) {
+    this.camera.radius += _delta;
   }
   
-  update(dt: number) {}
+  update(_dt: number) {}
   getCamera() { return this.camera; }
 }
 
 export class TrafficManager {
-  constructor(private scene: BABYLON.Scene) {}
+  constructor(private _scene: BABYLON.Scene) {}
   async initialize() {}
-  update(dt: number, carPos: BABYLON.Vector3) {}
+  update(_dt: number, _carPos: BABYLON.Vector3) {}
 }
 
 export class AchievementManager {

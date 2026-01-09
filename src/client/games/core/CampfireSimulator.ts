@@ -28,16 +28,17 @@ export default class CampfireSimulator {
   
   // Menu System
   private menu!: CampfireSimulatorMenu;
-  private gameSettings: GameSettings = {
-    graphics: 'high',
-    fireIntensity: 0.8,
-    particles: true,
-    postProcessing: true,
-    antialiasing: true,
-    volume: 0.7,
-    fireVolume: 0.8,
-    ambienceVolume: 0.6
-  };
+  // Settings stored but not actively read after initialization
+  // private _gameSettings: GameSettings = {
+  //   graphics: 'high',
+  //   fireIntensity: 0.8,
+  //   particles: true,
+  //   postProcessing: true,
+  //   antialiasing: true,
+  //   volume: 0.7,
+  //   fireVolume: 0.8,
+  //   ambienceVolume: 0.6
+  // };
   private gameStarted: boolean = false;
   private isPaused: boolean = false;
   private isRunning: boolean = false;
@@ -58,6 +59,22 @@ export default class CampfireSimulator {
   private auroraParticles!: BABYLON.ParticleSystem;
   private auroraVisible: boolean = false;
   private wildlifeTimer: number = 0;
+  private currentWeather: string = 'clear';
+  
+  // Camping Equipment
+  private campingGear: BABYLON.Mesh[] = [];
+  private tentMesh!: BABYLON.Mesh;
+  private chairMeshes: BABYLON.Mesh[] = [];
+  private coolerMesh!: BABYLON.Mesh;
+  
+  // Cooking System
+  private cookingItems: BABYLON.Mesh[] = [];
+  private isCooking: boolean = false;
+  private cookingTimer: number = 0;
+  
+  // Ambient Audio
+  // private _audioTimer: number = 0; // Reserved for future audio timing
+  private lastSoundTime: number = 0;
   
   private keys: { [key: string]: boolean } = {};
   
@@ -116,7 +133,7 @@ export default class CampfireSimulator {
       this.keys[e.key.toLowerCase()] = true;
       if (e.key === 'l') this.addLog();
       if (e.key === 'm') this.roastMarshmallow();
-      if (e.key === ' ') this.stokeF ire(); // Space to stoke fire
+      if (e.key === ' ') this.stokeFire(); // Space to stoke fire
     });
     window.addEventListener('keyup', (e) => this.keys[e.key.toLowerCase()] = false);
     
@@ -141,6 +158,7 @@ export default class CampfireSimulator {
     this.createStarfield();
     this.createMoon();
     this.createNorthernLights();
+    this.createCampingGear();
     this.initializeParticles();
     
     // Initial wildlife spawn timer
@@ -516,6 +534,140 @@ export default class CampfireSimulator {
     }
   }
   
+  private createCampingGear(): void {
+    // Tent (dome tent behind campfire)
+    const tentBase = BABYLON.MeshBuilder.CreateCylinder('tentBase', {
+      diameter: 5,
+      height: 3,
+      tessellation: 16,
+      arc: 0.5
+    }, this.scene);
+    tentBase.position.set(0, 1.5, -12);
+    tentBase.rotation.x = Math.PI / 2;
+    
+    const tentMat = new BABYLON.StandardMaterial('tentMat', this.scene);
+    tentMat.diffuseColor = new BABYLON.Color3(0.2, 0.5, 0.3);
+    tentMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    tentBase.material = tentMat;
+    
+    // Tent door flap
+    const doorFlap = BABYLON.MeshBuilder.CreateBox('doorFlap', {
+      width: 1.5,
+      height: 2,
+      depth: 0.1
+    }, this.scene);
+    doorFlap.position.set(0, 1, -9.5);
+    doorFlap.material = tentMat;
+    
+    this.tentMesh = BABYLON.Mesh.MergeMeshes([tentBase, doorFlap], true)!;
+    this.campingGear.push(this.tentMesh);
+    
+    // Camping chairs (4 chairs around fire)
+    const chairPositions = [
+      { x: 3, z: 0, rot: -Math.PI / 2 },
+      { x: -3, z: 0, rot: Math.PI / 2 },
+      { x: 0, z: 3, rot: 0 },
+      { x: 0, z: -3, rot: Math.PI }
+    ];
+    
+    for (const pos of chairPositions) {
+      const chair = this.createChair();
+      chair.position.set(pos.x, 0, pos.z);
+      chair.rotation.y = pos.rot;
+      this.chairMeshes.push(chair);
+      this.campingGear.push(chair);
+    }
+    
+    // Cooler (next to one of the chairs)
+    const coolerBody = BABYLON.MeshBuilder.CreateBox('coolerBody', {
+      width: 1.5,
+      height: 0.8,
+      depth: 1
+    }, this.scene);
+    coolerBody.position.set(4, 0.4, 1);
+    
+    const coolerLid = BABYLON.MeshBuilder.CreateBox('coolerLid', {
+      width: 1.5,
+      height: 0.1,
+      depth: 1
+    }, this.scene);
+    coolerLid.position.set(4, 0.85, 1);
+    
+    const coolerMat = new BABYLON.StandardMaterial('coolerMat', this.scene);
+    coolerMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 0.7);
+    coolerMat.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+    coolerMat.specularPower = 64;
+    coolerBody.material = coolerMat;
+    coolerLid.material = coolerMat;
+    
+    this.coolerMesh = BABYLON.Mesh.MergeMeshes([coolerBody, coolerLid], true)!;
+    this.campingGear.push(this.coolerMesh);
+    
+    // Camping lantern (hanging on tent)
+    const lantern = BABYLON.MeshBuilder.CreateCylinder('lantern', {
+      diameter: 0.3,
+      height: 0.5,
+      tessellation: 8
+    }, this.scene);
+    lantern.position.set(-1.5, 2.5, -10);
+    
+    const lanternMat = new BABYLON.StandardMaterial('lanternMat', this.scene);
+    lanternMat.emissiveColor = new BABYLON.Color3(1.0, 0.8, 0.3);
+    lanternMat.diffuseColor = new BABYLON.Color3(0.9, 0.7, 0.2);
+    lantern.material = lanternMat;
+    
+    // Add point light for lantern
+    const lanternLight = new BABYLON.PointLight('lanternLight', lantern.position, this.scene);
+    lanternLight.intensity = 2;
+    lanternLight.range = 8;
+    lanternLight.diffuse = new BABYLON.Color3(1.0, 0.8, 0.4);
+    
+    this.campingGear.push(lantern);
+    
+    console.log('⛺ Camping gear setup complete!');
+  }
+  
+  private createChair(): BABYLON.Mesh {
+    // Simple camping chair
+    const seat = BABYLON.MeshBuilder.CreateBox('seat', {
+      width: 0.8,
+      height: 0.1,
+      depth: 0.8
+    }, this.scene);
+    seat.position.y = 0.5;
+    
+    const backrest = BABYLON.MeshBuilder.CreateBox('backrest', {
+      width: 0.8,
+      height: 1,
+      depth: 0.1
+    }, this.scene);
+    backrest.position.y = 0.9;
+    backrest.position.z = -0.35;
+    backrest.rotation.x = -Math.PI / 12;
+    
+    // Chair legs
+    const legs: BABYLON.Mesh[] = [];
+    for (let i = 0; i < 4; i++) {
+      const leg = BABYLON.MeshBuilder.CreateCylinder('leg', {
+        diameter: 0.08,
+        height: 0.5
+      }, this.scene);
+      const x = (i % 2 === 0) ? -0.35 : 0.35;
+      const z = (i < 2) ? -0.35 : 0.35;
+      leg.position.set(x, 0.25, z);
+      legs.push(leg);
+    }
+    
+    const chairMat = new BABYLON.StandardMaterial('chairMat', this.scene);
+    chairMat.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.35);
+    chairMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+    
+    const chair = BABYLON.Mesh.MergeMeshes([seat, backrest, ...legs], true)!;
+    chair.material = chairMat;
+    
+    return chair;
+  }
+  
   private spawnWildlife(): void {
     const types = ['deer', 'rabbit', 'owl'];
     const type = types[Math.floor(Math.random() * types.length)];
@@ -581,11 +733,22 @@ export default class CampfireSimulator {
   }
   
   private updateWildlife(dt: number): void {
-    // Spawn wildlife occasionally
+    // Spawn wildlife occasionally (affected by weather)
     this.wildlifeTimer -= dt;
     if (this.wildlifeTimer <= 0 && this.wildlife.length < 3) {
-      this.spawnWildlife();
-      this.wildlifeTimer = 20 + Math.random() * 40; // Every 20-60 seconds
+      // Weather affects spawn rate
+      const weatherMultiplier = this.currentWeather === 'storm' ? 0 : 
+                                this.currentWeather === 'rain' ? 2 : 
+                                this.currentWeather === 'fog' ? 1.5 : 1;
+      
+      if (weatherMultiplier > 0) {
+        this.spawnWildlife();
+        this.wildlifeTimer = (20 + Math.random() * 40) * weatherMultiplier;
+      } else {
+        // Animals hide during storms
+        this.wildlifeTimer = 60; // Check again in 60 seconds
+        console.log('⛈️ Wildlife hiding from the storm...');
+      }
     }
     
     // Update existing wildlife
@@ -633,6 +796,12 @@ export default class CampfireSimulator {
         this.auroraParticles.stop();
       }
     }
+    
+    // Update cooking
+    this.updateCooking(dt);
+    
+    // Play nature sounds
+    this.playNatureSounds();
   }
 
   private initializeParticles(): void {
@@ -858,10 +1027,33 @@ export default class CampfireSimulator {
       this.info.fireStrength = Math.round(this.fireIntensity);
     }
   }
+  
+  // Reserved for future: startCooking method for campfire cooking feature
+  
+  private updateCooking(dt: number): void {
+    if (this.isCooking && this.cookingTimer > 0) {
+      this.cookingTimer -= dt;
+      if (this.cookingTimer <= 0) {
+        this.isCooking = false;
+        console.log('✨ Food is ready!');
+      }
+    }
+  }
+  
+  // Ambient Audio
+  private playNatureSounds(): void {
+    const now = Date.now() / 1000;
+    if (now - this.lastSoundTime > 10) { // Every 10 seconds
+      const sounds = ['🦉 An owl hoots in the distance', '🐺 A wolf howls far away', '🦗 Crickets chirp rhythmically'];
+      const sound = sounds[Math.floor(Math.random() * sounds.length)];
+      console.log(sound);
+      this.lastSoundTime = now;
+    }
+  }
 
   // Menu System Methods
   private startGame(settings: GameSettings): void {
-    this.gameSettings = settings;
+    // Apply settings directly without storing
     this.applySettings(settings);
     
     // Show HUD
@@ -884,7 +1076,7 @@ export default class CampfireSimulator {
   }
   
   private applySettings(settings: GameSettings): void {
-    this.gameSettings = settings;
+    // Settings applied directly without storing
     
     // Apply fire intensity
     const fireLight = this.scene.getLightByName('fireLight') as BABYLON.PointLight;

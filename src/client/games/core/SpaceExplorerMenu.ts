@@ -11,7 +11,7 @@
 
 export class SpaceExplorerMenu {
   private container: HTMLElement;
-  private currentScreen: 'main' | 'settings' | 'controls' | 'playing' | 'paused' = 'main';
+  // Reserved for future: currentScreen state tracking
   private onStartGame: (settings: GameSettings) => void;
   private onResumeGame: () => void;
   private onSettingsChange: (settings: GameSettings) => void;

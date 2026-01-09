@@ -2,8 +2,7 @@
  * About Page - Project Information and Credits
  */
 
-import React from 'react';
-import { GamepadIcon, DiamondIcon, RobotIcon, UsersIcon, GithubIcon, HeartIcon } from '../components/Icons';
+import { GamepadIcon, HeartIcon, UserIcon } from '../components/Icons';
 import '../styles/cartoony-theme.css';
 
 export default function About() {
@@ -203,7 +202,7 @@ export default function About() {
           boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-            <UsersIcon size={36} color="#fff" />
+            <UserIcon size={36} color="#fff" />
             <h2 style={{ fontSize: '28px', color: '#fff', marginLeft: '15px', fontWeight: 'bold' }}>
               Credits & Thanks
             </h2>
@@ -245,7 +244,9 @@ export default function About() {
           textAlign: 'center',
           boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
         }}>
-          <HeartIcon size={48} color="#fff" style={{ marginBottom: '15px' }} />
+          <div style={{ marginBottom: '15px' }}>
+            <HeartIcon size={48} color="#fff" />
+          </div>
           <h2 style={{ fontSize: '28px', color: '#fff', marginBottom: '15px', fontWeight: 'bold' }}>
             Made with ❤️ for Gamers
           </h2>
@@ -276,8 +277,7 @@ export default function About() {
               onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
               onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <GithubIcon size={24} color="#fff" />
-              View on GitHub
+              🐙 View on GitHub
             </a>
             
             <button

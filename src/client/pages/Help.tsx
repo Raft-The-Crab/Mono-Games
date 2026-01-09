@@ -1,4 +1,4 @@
-import { GamepadIcon, RobotIcon, TrophyIcon, DiamondIcon, SettingsIcon, InfoIcon } from '../components/Icons';
+import { GamepadIcon, RobotIcon, TrophyIcon, SettingsIcon, InfoIcon, SparklesIcon } from '../components/Icons';
 import '../styles/cartoony-theme.css';
 
 export default function Help() {
@@ -15,7 +15,7 @@ export default function Help() {
     },
     {
       id: 'premium-games',
-      icon: DiamondIcon,
+      icon: SparklesIcon,
       title: '💎 Premium Games & Diamonds',
       content: [
         { q: 'What are Diamonds?', a: 'Diamonds are the in-game currency! Earn them by playing games, achieving milestones, and ranking on leaderboards.' },

@@ -25,14 +25,8 @@
 import * as BABYLON from '@babylonjs/core';
 import { CarManager } from './managers/CarManager';
 import { WorldManager } from './managers/WorldManager';
-import { WeatherManager } from './managers/WeatherManager';
-import { UIManager } from './managers/UIManager';
-import { AudioManager } from './managers/AudioManager';
-import { CameraManager } from './managers/CameraManager';
-import { TrafficManager } from './managers/TrafficManager';
-import { AchievementManager } from './managers/AchievementManager';
-import { SaveManager } from './managers/SaveManager';
-import type { GameSettings, GameState, CarData } from './types';
+import { WeatherManager, UIManager, AudioManager, CameraManager, TrafficManager, AchievementManager, SaveManager } from './managers/index';
+import type { GameSettings, GameState } from './types';
 
 export class InfiniteRoadsGame {
   private canvas: HTMLCanvasElement;
@@ -356,15 +350,15 @@ export class InfiniteRoadsGame {
     this.cameraManager.zoom(e.deltaY > 0 ? 1 : -1);
   }
 
-  private handleTouchStart(e: TouchEvent): void {
+  private handleTouchStart(_e: TouchEvent): void {
     // Touch controls handled by UIManager
   }
 
-  private handleTouchMove(e: TouchEvent): void {
+  private handleTouchMove(_e: TouchEvent): void {
     // Touch controls handled by UIManager
   }
 
-  private handleTouchEnd(e: TouchEvent): void {
+  private handleTouchEnd(_e: TouchEvent): void {
     // Touch controls handled by UIManager
   }
 

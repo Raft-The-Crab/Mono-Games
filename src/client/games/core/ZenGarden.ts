@@ -80,7 +80,7 @@ export default class ZenGarden {
   
   // Particles
   private cherryBlossomParticles!: BABYLON.ParticleSystem;
-  private waterfallParticles!: BABYLON.ParticleSystem;
+  // Reserved for future: private waterfallParticles!: BABYLON.ParticleSystem;
   
   // State
   private isRunning: boolean = false;
@@ -589,7 +589,7 @@ export default class ZenGarden {
     
     ctx.strokeStyle = this.getRakePatternColor();
     ctx.lineWidth = this.getRakePatternWidth();
-    ctx.lineCap = 'round';
+    (ctx as any).lineCap = 'round';
     
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);

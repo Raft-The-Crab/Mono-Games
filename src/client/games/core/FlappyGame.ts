@@ -4,8 +4,6 @@
  * No external dependencies - pure canvas
  */
 
-import type { Game } from '../shared/types';
-
 interface Pipe {
   x: number;
   y: number;
@@ -22,7 +20,7 @@ interface Particle {
   color: string;
 }
 
-export class FlappyGame implements Game {
+export class FlappyGame {
   name = 'Flappy Bird';
   description = 'Tap to flap and avoid pipes!';
   category = 'arcade' as const;

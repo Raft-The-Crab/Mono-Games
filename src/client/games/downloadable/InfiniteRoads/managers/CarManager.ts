@@ -51,7 +51,7 @@ export class CarManager {
     };
     
     this.loadCarDatabase();
-    this.currentCar = this.cars.get(carId) || this.cars.values().next().value;
+    this.currentCar = this.cars.get(carId) || this.cars.values().next().value!;
   }
 
   private loadCarDatabase(): void {

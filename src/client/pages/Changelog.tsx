@@ -2,8 +2,7 @@
  * Changelog Page - Version History with Visual Timeline
  */
 
-import React from 'react';
-import { GamepadIcon, DiamondIcon, RobotIcon, TrophyIcon, StarIcon } from '../components/Icons';
+
 import '../styles/cartoony-theme.css';
 
 interface VersionUpdate {

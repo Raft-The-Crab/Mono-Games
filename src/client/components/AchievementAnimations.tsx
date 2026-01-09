@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { TrophyIcon, StarIcon, DiamondIcon } from './Icons';
+
 
 interface ConfettiParticle {
   id: number;
@@ -166,7 +166,7 @@ export const AchievementToast: React.FC<AchievementToastProps> = ({ achievement,
             padding: '8px 12px',
             borderRadius: '8px'
           }}>
-            <DiamondIcon size={20} color="#fbbf24" />
+            <span style={{ fontSize: '20px' }}>💎</span>
             <span style={{
               fontFamily: "'Comic Sans MS', cursive",
               fontWeight: 'bold',
