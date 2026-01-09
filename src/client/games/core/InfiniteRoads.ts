@@ -132,6 +132,16 @@ export default class InfiniteRoads {
   private currentRadioStation: number = 0;
   private radioEnabled: boolean = false;
   
+  // Weather Transition System ⛈️
+  private weatherTransitionProgress: number = 0;
+  private targetWeather: Weather = 'clear';
+  private previousWeather: Weather = 'clear';
+  private isTransitioning: boolean = false;
+  private weatherTransitionSpeed: number = 0.1; // 10 seconds for full transition
+  private lightningTimer: number = 0;
+  private rainbowVisible: boolean = false;
+  private rainbowTimer: number = 0;
+  
   // Effects & Scenery
   private clouds: BABYLON.Mesh[] = [];
   private wildlife: BABYLON.Mesh[] = [];
@@ -1551,6 +1561,9 @@ export default class InfiniteRoads {
       this.camera.target.addInPlace(new BABYLON.Vector3(shakeX, shakeY, 0));
     }
     
+    // Weather transition system
+    this.updateWeatherTransition(dt);
+    
     // Update audio based on speed and game state
     this.updateAudio();
   }
@@ -1691,7 +1704,11 @@ export default class InfiniteRoads {
   private cycleWeather(): void {
     const weathers: Weather[] = ['clear', 'rain', 'fog', 'sunset', 'storm'];
     const current = weathers.indexOf(this.weather);
-    this.weather = weathers[(current + 1) % weathers.length];
+    this.previousWeather = this.weather;
+    this.targetWeather = weathers[(current + 1) % weathers.length];
+    this.isTransitioning = true;
+    this.weatherTransitionProgress = 0;
+    console.log(`🌦️ Weather transitioning: ${this.previousWeather} → ${this.targetWeather}`);
   }
 
   private cycleBiome(): void {
