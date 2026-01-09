@@ -106,6 +106,15 @@ export default class InfiniteRoads {
   private snowParticles: ParticleSystem = { system: null, active: false };
   private leavesParticles: ParticleSystem = { system: null, active: false };
   
+  // SPEED EFFECTS - Make it feel FAST! 🔥
+  private speedTrailsLeft: ParticleSystem = { system: null, active: false };
+  private speedTrailsRight: ParticleSystem = { system: null, active: false };
+  private tireSmokeLeft: ParticleSystem = { system: null, active: false };
+  private tireSmokeRight: ParticleSystem = { system: null, active: false };
+  private baseFOV: number = 0.8;
+  private targetFOV: number = 0.8;
+  private cameraShake: number = 0;
+  
   // Effects & Scenery
   private clouds: BABYLON.Mesh[] = [];
   private wildlife: BABYLON.Mesh[] = [];
@@ -1443,6 +1452,77 @@ export default class InfiniteRoads {
         this.leavesParticles.active = false;
       }
     }
+    
+    // 🔥 SPEED EFFECTS - Make it feel INSANELY FAST!
+    const currentCar = this.availableCars[this.currentCarIndex];
+    const speedPercent = this.carSpeed / currentCar.maxSpeed;
+    
+    // Speed trails activate at 40% max speed
+    if (speedPercent > 0.4 && this.gameSettings.particles) {
+      const trailIntensity = Math.max(0, (speedPercent - 0.4) / 0.6);
+      const emitRate = Math.floor(trailIntensity * 400);
+      
+      if (!this.speedTrailsLeft.active && this.speedTrailsLeft.system) {
+        this.speedTrailsLeft.system.start();
+        this.speedTrailsLeft.active = true;
+      }
+      if (!this.speedTrailsRight.active && this.speedTrailsRight.system) {
+        this.speedTrailsRight.system.start();
+        this.speedTrailsRight.active = true;
+      }
+      
+      if (this.speedTrailsLeft.system) this.speedTrailsLeft.system.emitRate = emitRate;
+      if (this.speedTrailsRight.system) this.speedTrailsRight.system.emitRate = emitRate;
+    } else {
+      if (this.speedTrailsLeft.active && this.speedTrailsLeft.system) {
+        this.speedTrailsLeft.system.stop();
+        this.speedTrailsLeft.active = false;
+      }
+      if (this.speedTrailsRight.active && this.speedTrailsRight.system) {
+        this.speedTrailsRight.system.stop();
+        this.speedTrailsRight.active = false;
+      }
+    }
+    
+    // Tire smoke when turning hard at high speed (drifting)
+    const isDrifting = Math.abs(this.carPosition) > 0.3 && speedPercent > 0.5;
+    if (isDrifting && this.gameSettings.particles) {
+      const driftIntensity = Math.abs(this.carPosition) * speedPercent;
+      const smokeRate = Math.floor(driftIntensity * 200);
+      
+      if (!this.tireSmokeLeft.active && this.tireSmokeLeft.system) {
+        this.tireSmokeLeft.system.start();
+        this.tireSmokeLeft.active = true;
+      }
+      if (!this.tireSmokeRight.active && this.tireSmokeRight.system) {
+        this.tireSmokeRight.system.start();
+        this.tireSmokeRight.active = true;
+      }
+      
+      if (this.tireSmokeLeft.system) this.tireSmokeLeft.system.emitRate = smokeRate;
+      if (this.tireSmokeRight.system) this.tireSmokeRight.system.emitRate = smokeRate;
+    } else {
+      if (this.tireSmokeLeft.active && this.tireSmokeLeft.system) {
+        this.tireSmokeLeft.system.stop();
+        this.tireSmokeLeft.active = false;
+      }
+      if (this.tireSmokeRight.active && this.tireSmokeRight.system) {
+        this.tireSmokeRight.system.stop();
+        this.tireSmokeRight.active = false;
+      }
+    }
+    
+    // FOV increase with speed (makes it feel FASTER)
+    this.targetFOV = this.baseFOV + (speedPercent * 0.25); // Up to 25% FOV increase
+    this.camera.fov += (this.targetFOV - this.camera.fov) * 0.1; // Smooth transition
+    
+    // Camera shake at very high speeds (adds intensity)
+    if (speedPercent > 0.7) {
+      this.cameraShake = (speedPercent - 0.7) * 0.15;
+      const shakeX = (Math.random() - 0.5) * this.cameraShake;
+      const shakeY = (Math.random() - 0.5) * this.cameraShake;
+      this.camera.target.addInPlace(new BABYLON.Vector3(shakeX, shakeY, 0));
+    }
   }
 
   private removeOldSegments(): void {
@@ -1675,6 +1755,64 @@ export default class InfiniteRoads {
     leavesSystem.color1 = new BABYLON.Color4(0.2, 0.6, 0.1, 0.7);
     leavesSystem.color2 = new BABYLON.Color4(0.8, 0.5, 0.1, 0.6);
     this.leavesParticles = { system: leavesSystem, active: false };
+    
+    // 🔥 SPEED TRAILS - Left side (blue energy)
+    const speedTrailLeft = new BABYLON.ParticleSystem('speedTrailLeft', 800, this.scene);
+    speedTrailLeft.particleTexture = new BABYLON.Texture('', this.scene);
+    speedTrailLeft.emitter = this.car;
+    speedTrailLeft.createPointEmitter(new BABYLON.Vector3(-1.5, 0.3, -2), new BABYLON.Vector3(-2, 0, -4));
+    speedTrailLeft.minSize = 0.2;
+    speedTrailLeft.maxSize = 0.8;
+    speedTrailLeft.minLifeTime = 0.2;
+    speedTrailLeft.maxLifeTime = 0.5;
+    speedTrailLeft.emitRate = 0; // Will control based on speed
+    speedTrailLeft.color1 = new BABYLON.Color4(0.3, 0.6, 1.0, 0.8);
+    speedTrailLeft.color2 = new BABYLON.Color4(0.1, 0.3, 0.8, 0.3);
+    speedTrailLeft.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+    this.speedTrailsLeft = { system: speedTrailLeft, active: false };
+    
+    // 🔥 SPEED TRAILS - Right side (blue energy)
+    const speedTrailRight = new BABYLON.ParticleSystem('speedTrailRight', 800, this.scene);
+    speedTrailRight.particleTexture = new BABYLON.Texture('', this.scene);
+    speedTrailRight.emitter = this.car;
+    speedTrailRight.createPointEmitter(new BABYLON.Vector3(1.5, 0.3, -2), new BABYLON.Vector3(2, 0, -4));
+    speedTrailRight.minSize = 0.2;
+    speedTrailRight.maxSize = 0.8;
+    speedTrailRight.minLifeTime = 0.2;
+    speedTrailRight.maxLifeTime = 0.5;
+    speedTrailRight.emitRate = 0;
+    speedTrailRight.color1 = new BABYLON.Color4(0.3, 0.6, 1.0, 0.8);
+    speedTrailRight.color2 = new BABYLON.Color4(0.1, 0.3, 0.8, 0.3);
+    speedTrailRight.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+    this.speedTrailsRight = { system: speedTrailRight, active: false };
+    
+    // 💨 TIRE SMOKE - Left tire (drift smoke)
+    const tireSmokeLeft = new BABYLON.ParticleSystem('tireSmokeLeft', 500, this.scene);
+    tireSmokeLeft.particleTexture = new BABYLON.Texture('', this.scene);
+    tireSmokeLeft.emitter = this.car;
+    tireSmokeLeft.createPointEmitter(new BABYLON.Vector3(-1.2, 0, -1.5), new BABYLON.Vector3(-1.5, 0.5, -2));
+    tireSmokeLeft.minSize = 0.5;
+    tireSmokeLeft.maxSize = 2.0;
+    tireSmokeLeft.minLifeTime = 0.8;
+    tireSmokeLeft.maxLifeTime = 1.5;
+    tireSmokeLeft.emitRate = 0;
+    tireSmokeLeft.color1 = new BABYLON.Color4(0.9, 0.9, 0.9, 0.6);
+    tireSmokeLeft.color2 = new BABYLON.Color4(0.7, 0.7, 0.7, 0.2);
+    this.tireSmokeLeft = { system: tireSmokeLeft, active: false };
+    
+    // 💨 TIRE SMOKE - Right tire (drift smoke)
+    const tireSmokeRight = new BABYLON.ParticleSystem('tireSmokeRight', 500, this.scene);
+    tireSmokeRight.particleTexture = new BABYLON.Texture('', this.scene);
+    tireSmokeRight.emitter = this.car;
+    tireSmokeRight.createPointEmitter(new BABYLON.Vector3(1.2, 0, -1.5), new BABYLON.Vector3(1.5, 0.5, -2));
+    tireSmokeRight.minSize = 0.5;
+    tireSmokeRight.maxSize = 2.0;
+    tireSmokeRight.minLifeTime = 0.8;
+    tireSmokeRight.maxLifeTime = 1.5;
+    tireSmokeRight.emitRate = 0;
+    tireSmokeRight.color1 = new BABYLON.Color4(0.9, 0.9, 0.9, 0.6);
+    tireSmokeRight.color2 = new BABYLON.Color4(0.7, 0.7, 0.7, 0.2);
+    this.tireSmokeRight = { system: tireSmokeRight, active: false };
   }
   
   // Menu System Methods
@@ -1730,6 +1868,10 @@ export default class InfiniteRoads {
       this.dustParticles.system?.stop();
       this.snowParticles.system?.stop();
       this.leavesParticles.system?.stop();
+      this.speedTrailsLeft.system?.stop();
+      this.speedTrailsRight.system?.stop();
+      this.tireSmokeLeft.system?.stop();
+      this.tireSmokeRight.system?.stop();
     }
     
     // Apply post-processing
