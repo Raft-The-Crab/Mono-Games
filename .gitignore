@@ -88,6 +88,11 @@ aws-credentials.json
 src/server/**/*.js
 src/server/**/*.ts
 !src/server/README.md
+!src/server/routes/*.js
+!src/server/server.js
+!src/server/middleware/*.js
+!src/server/services/*.js
+!src/server/utils/*.js
 
 # Database files
 *.db
