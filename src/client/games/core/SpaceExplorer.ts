@@ -1441,7 +1441,7 @@ export default class SpaceExplorer {
 
   // Menu System Methods
   private startGame(settings: GameSettings): void {
-    this.gameSettings = settings;
+    this._gameSettings = settings;
     this.applySettings(settings);
     
     // Show HUD
@@ -1464,7 +1464,7 @@ export default class SpaceExplorer {
   }
   
   private applySettings(settings: GameSettings): void {
-    this.gameSettings = settings;
+    this._gameSettings = settings;
     
     // Apply particle settings
     // nebulae particles handled in updateNearbyObjects
