@@ -124,7 +124,7 @@ export class WorldManager {
     roadMat.backFaceCulling = false;
     
     // Add road reflections
-    roadMat.environmentIntensity = 0.2;
+    roadMat._environmentIntensity = 0.2;
     
     roadMesh.material = roadMat;
     roadMesh.receiveShadows = true;
@@ -223,7 +223,7 @@ export class WorldManager {
     });
   }
 
-  private generateScenery(index: number, roadX: number, roadY: number, z: number): void {
+  private generateScenery(_index: number, roadX: number, roadY: number, z: number): void {
     const biomeConfig = this.biomes[this.currentBiome];
     const count = Math.floor(Math.random() * 5 * biomeConfig.density);
     
@@ -357,7 +357,7 @@ export class WorldManager {
     this.sceneryObjects.push(post, sign);
   }
 
-  update(deltaTime: number, carPosition: BABYLON.Vector3): void {
+  update(_deltaTime: number, carPosition: BABYLON.Vector3): void {
     // Calculate current segment
     const currentSegment = Math.floor(carPosition.z / this.segmentLength);
     

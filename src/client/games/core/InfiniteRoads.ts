@@ -76,11 +76,11 @@ export default class InfiniteRoads {
   private carPosition: number = 0; // -1 to 1 (left to right)
   private carRotation: number = 0;
   private carTilt: number = 0; // For bike leaning
-  private driftPower: number = 0;
+  private _driftPower: number = 0;
   
   // Physics
-  private velocity: BABYLON.Vector3 = BABYLON.Vector3.Zero();
-  private suspension: number = 0;
+  private _velocity: BABYLON.Vector3 = BABYLON.Vector3.Zero();
+  private _suspension: number = 0;
   private wheelRotation: number = 0;
   private wheels: BABYLON.Mesh[] = [];
   

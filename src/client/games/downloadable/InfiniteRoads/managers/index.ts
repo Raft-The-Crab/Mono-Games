@@ -2,20 +2,20 @@
 import * as BABYLON from '@babylonjs/core';
 
 export class WeatherManager {
-  constructor(private scene: BABYLON.Scene) {}
-  update(dt: number, pos: BABYLON.Vector3) {}
-  setWeather(weather: string) {}
+  constructor(private _scene: BABYLON.Scene) {}
+  update(_dt: number, _pos: BABYLON.Vector3) {}
+  setWeather(_weather: string) {}
   cycleWeather() {}
   getCurrentWeather() { return 'Clear'; }
 }
 
 export class UIManager {
-  constructor(private game: any, private settings: any) {}
-  update(info: any) {}
+  constructor(private _game: any, private _settings: any) {}
+  update(_info: any) {}
   toggleMenu() {}
   togglePauseMenu() {}
   openPhotoMode() {}
-  showAchievement(id: string) {}
+  showAchievement(_id: string) {}
 }
 
 export class AudioManager {

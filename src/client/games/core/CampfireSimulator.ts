@@ -28,7 +28,7 @@ export default class CampfireSimulator {
   
   // Menu System
   private menu!: CampfireSimulatorMenu;
-  private gameSettings: GameSettings = {
+  private _gameSettings: GameSettings = {
     graphics: 'high',
     fireIntensity: 0.8,
     particles: true,
@@ -72,7 +72,7 @@ export default class CampfireSimulator {
   private cookingTimer: number = 0;
   
   // Ambient Audio
-  private audioTimer: number = 0;
+  private _audioTimer: number = 0;
   private lastSoundTime: number = 0;
   
   private keys: { [key: string]: boolean } = {};
@@ -1072,7 +1072,7 @@ export default class CampfireSimulator {
 
   // Menu System Methods
   private startGame(settings: GameSettings): void {
-    this.gameSettings = settings;
+    this._gameSettings = settings;
     this.applySettings(settings);
     
     // Show HUD
@@ -1095,7 +1095,7 @@ export default class CampfireSimulator {
   }
   
   private applySettings(settings: GameSettings): void {
-    this.gameSettings = settings;
+    this._gameSettings = settings;
     
     // Apply fire intensity
     const fireLight = this.scene.getLightByName('fireLight') as BABYLON.PointLight;

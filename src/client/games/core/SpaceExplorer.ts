@@ -38,7 +38,7 @@ export default class SpaceExplorer {
   
   // Menu System
   private menu!: SpaceExplorerMenu;
-  private gameSettings: GameSettings = {
+  private _gameSettings: GameSettings = {
     graphics: 'high',
     shadows: false,
     particles: true,
@@ -86,7 +86,7 @@ export default class SpaceExplorer {
   // Alien Encounters
   private alienShips: BABYLON.Mesh[] = [];
   private spaceWhales: BABYLON.Mesh[] = [];
-  private alienEncounterTimer: number = 0;
+  private _alienEncounterTimer: number = 0;
   
   // Space Anomalies
   private anomalies: BABYLON.Mesh[] = [];
@@ -412,7 +412,7 @@ export default class SpaceExplorer {
       this.createSpaceWhale(new BABYLON.Vector3(x, y, z));
     }
     
-    this.alienEncounterTimer = 60 + Math.random() * 60; // Random encounter every 1-2 minutes
+    this._alienEncounterTimer = 60 + Math.random() * 60; // Random encounter every 1-2 minutes
     
     // Add space anomalies (quantum rifts, radiation zones)
     for (let i = 0; i < 3; i++) {

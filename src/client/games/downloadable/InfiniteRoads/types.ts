@@ -1,3 +1,5 @@
+import * as BABYLON from '@babylonjs/core';
+
 export interface GameSettings {
   graphicsQuality: 'ultra' | 'high' | 'medium' | 'low';
   musicVolume: number;
