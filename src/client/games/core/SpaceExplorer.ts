@@ -21,7 +21,7 @@ import * as BABYLON from '@babylonjs/core';
 import { SpaceExplorerMenu, GameSettings } from './SpaceExplorerMenu';
 
 type CelestialBody = 'planet' | 'star' | 'asteroid' | 'nebula' | 'blackhole' | 'wormhole';
-type PlanetType = 'rocky' | 'gas' | 'ice' | 'lava' | 'earth' | 'desert';
+type PlanetType = 'rocky' | 'gas' | 'ice' | 'lava' | 'earth' | 'desert' | 'ringed-gas' | 'volcanic' | 'crystalline';
 
 interface SpaceObject {
   mesh: BABYLON.Mesh;
@@ -299,16 +299,19 @@ export default class SpaceExplorer {
       const y = (Math.random() - 0.5) * 500;
       const z = (Math.random() - 0.5) * 500;
       
-      if (Math.random() > 0.7) this.createPlanet(new BABYLON.Vector3(x, y, z));
-      else if (Math.random() > 0.5) this.createNebula(new BABYLON.Vector3(x, y, z));
-      else this.createAsteroidField(new BABYLON.Vector3(x, y, z));
+      const rand = Math.random();
+      if (rand > 0.8) this.createPlanet(new BABYLON.Vector3(x, y, z));
+      else if (rand > 0.6) this.createNebula(new BABYLON.Vector3(x, y, z));
+      else if (rand > 0.4) this.createAsteroidField(new BABYLON.Vector3(x, y, z));
+      else if (rand > 0.25) this.createComet(new BABYLON.Vector3(x, y, z));
+      else this.createSpaceStation(new BABYLON.Vector3(x, y, z));
     }
     
     this.createStarfield();
   }
 
   private createPlanet(pos: BABYLON.Vector3): void {
-    const types: PlanetType[] = ['rocky', 'gas', 'ice', 'lava', 'earth', 'desert'];
+    const types: PlanetType[] = ['rocky', 'gas', 'ice', 'lava', 'earth', 'desert', 'ringed-gas', 'volcanic', 'crystalline'];
     const type = types[Math.floor(Math.random() * types.length)];
     const size = 5 + Math.random() * 15;
     
@@ -326,6 +329,26 @@ export default class SpaceExplorer {
         mat.specularColor = new BABYLON.Color3(0.6, 0.5, 0.4);
         mat.specularPower = 32;
         break;
+      case 'ringed-gas':
+        // Saturn-like gas giant with prominent rings
+        mat.diffuseColor = new BABYLON.Color3(0.95, 0.85, 0.65);
+        mat.specularColor = new BABYLON.Color3(0.7, 0.6, 0.5);
+        mat.specularPower = 48;
+        // Create large ring system
+        const ring = BABYLON.MeshBuilder.CreateTorus('ring', {
+          diameter: size * 2.5,
+          thickness: size * 0.2,
+          tessellation: 96
+        }, this.scene);
+        ring.position = pos;
+        ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.3;
+        const ringMat = new BABYLON.StandardMaterial('ringMat', this.scene);
+        ringMat.diffuseColor = new BABYLON.Color3(0.8, 0.75, 0.65);
+        ringMat.specularColor = new BABYLON.Color3(0.6, 0.5, 0.4);
+        ringMat.alpha = 0.75;
+        ringMat.backFaceCulling = false;
+        ring.material = ringMat;
+        break;
       case 'ice': 
         mat.diffuseColor = new BABYLON.Color3(0.8, 0.95, 1.0); 
         mat.specularColor = new BABYLON.Color3(1, 1, 1);
@@ -337,6 +360,22 @@ export default class SpaceExplorer {
         mat.emissiveColor = new BABYLON.Color3(1.0, 0.3, 0.1);
         mat.specularPower = 8;
         break;
+      case 'volcanic':
+        // Active volcanic world with bright lava cracks
+        mat.diffuseColor = new BABYLON.Color3(0.2, 0.15, 0.1);
+        mat.emissiveColor = new BABYLON.Color3(1.0, 0.5, 0.0);
+        mat.specularPower = 4;
+        // Add pulsing glow
+        const volcanicGlow = BABYLON.MeshBuilder.CreateSphere('glow', {
+          diameter: size * 1.05,
+          segments: 24
+        }, this.scene);
+        volcanicGlow.position = pos;
+        const glowMat = new BABYLON.StandardMaterial('glowMat', this.scene);
+        glowMat.emissiveColor = new BABYLON.Color3(1.0, 0.4, 0.0);
+        glowMat.alpha = 0.4;
+        volcanicGlow.material = glowMat;
+        break;
       case 'earth': 
         mat.diffuseColor = new BABYLON.Color3(0.2, 0.5, 0.9);
         mat.specularColor = new BABYLON.Color3(0.8, 0.9, 1.0);
@@ -346,6 +385,31 @@ export default class SpaceExplorer {
         mat.diffuseColor = new BABYLON.Color3(0.85, 0.75, 0.5);
         mat.specularColor = new BABYLON.Color3(0.5, 0.4, 0.3);
         mat.specularPower = 16;
+        break;
+      case 'crystalline':
+        // Mysterious crystal planet with rainbow reflections
+        mat.diffuseColor = new BABYLON.Color3(0.6, 0.4, 0.8);
+        mat.specularColor = new BABYLON.Color3(1.0, 0.9, 1.0);
+        mat.specularPower = 512;
+        mat.emissiveColor = new BABYLON.Color3(0.3, 0.2, 0.4);
+        // Add crystalline structure particles
+        const crystalParticles = new BABYLON.ParticleSystem('crystals', 200, this.scene);
+        crystalParticles.particleTexture = new BABYLON.Texture('', this.scene);
+        crystalParticles.emitter = planet;
+        crystalParticles.minEmitBox = new BABYLON.Vector3(-size/2, -size/2, -size/2);
+        crystalParticles.maxEmitBox = new BABYLON.Vector3(size/2, size/2, size/2);
+        crystalParticles.minSize = 0.2;
+        crystalParticles.maxSize = 0.5;
+        crystalParticles.minLifeTime = 2.0;
+        crystalParticles.maxLifeTime = 4.0;
+        crystalParticles.emitRate = 20;
+        crystalParticles.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+        crystalParticles.color1 = new BABYLON.Color4(0.6, 0.4, 0.8, 0.8);
+        crystalParticles.color2 = new BABYLON.Color4(0.9, 0.7, 1.0, 0.6);
+        crystalParticles.direction1 = new BABYLON.Vector3(-0.5, -0.5, -0.5);
+        crystalParticles.direction2 = new BABYLON.Vector3(0.5, 0.5, 0.5);
+        crystalParticles.gravity = new BABYLON.Vector3(0, 0, 0);
+        crystalParticles.start();
         break;
       default: 
         mat.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.55);
@@ -372,7 +436,7 @@ export default class SpaceExplorer {
       atmosphere.material = atmMat;
     }
     
-    // Add rings for gas giants
+    // Add rings for regular gas giants (ringed-gas already has them)
     if (type === 'gas' && Math.random() > 0.5) {
       const ring = BABYLON.MeshBuilder.CreateTorus('ring', {
         diameter: size * 2,
@@ -501,6 +565,155 @@ export default class SpaceExplorer {
       });
     }
   }
+  
+  private createComet(pos: BABYLON.Vector3): void {
+    // Create comet nucleus (icy rock)
+    const nucleus = BABYLON.MeshBuilder.CreateSphere('comet', {
+      diameter: 2 + Math.random() * 2,
+      segments: 16
+    }, this.scene);
+    nucleus.position = pos;
+    
+    // Icy material with glow
+    const mat = new BABYLON.StandardMaterial('cometMat', this.scene);
+    mat.diffuseColor = new BABYLON.Color3(0.7, 0.8, 0.9);
+    mat.specularColor = new BABYLON.Color3(1.0, 1.0, 1.0);
+    mat.specularPower = 128;
+    mat.emissiveColor = new BABYLON.Color3(0.2, 0.3, 0.4);
+    nucleus.material = mat;
+    
+    // Create comet tail (long particle trail)
+    const tailParticles = new BABYLON.ParticleSystem('cometTail', 1000, this.scene);
+    tailParticles.particleTexture = new BABYLON.Texture('', this.scene);
+    tailParticles.emitter = nucleus;
+    tailParticles.minEmitBox = new BABYLON.Vector3(-1, -1, -1);
+    tailParticles.maxEmitBox = new BABYLON.Vector3(1, 1, 1);
+    
+    // Tail direction (away from nearest star - simulated randomly)
+    const tailDirection = new BABYLON.Vector3(
+      Math.random() - 0.5,
+      Math.random() - 0.5,
+      Math.random() - 0.5
+    ).normalize().scale(-20);
+    
+    tailParticles.direction1 = tailDirection.scale(0.8);
+    tailParticles.direction2 = tailDirection.scale(1.2);
+    tailParticles.minSize = 0.5;
+    tailParticles.maxSize = 2.0;
+    tailParticles.minLifeTime = 2.0;
+    tailParticles.maxLifeTime = 4.0;
+    tailParticles.emitRate = 200;
+    tailParticles.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+    tailParticles.color1 = new BABYLON.Color4(0.7, 0.8, 1.0, 0.6);
+    tailParticles.color2 = new BABYLON.Color4(0.4, 0.6, 0.9, 0.3);
+    tailParticles.colorDead = new BABYLON.Color4(0.2, 0.3, 0.5, 0);
+    tailParticles.minEmitPower = 1;
+    tailParticles.maxEmitPower = 3;
+    tailParticles.gravity = new BABYLON.Vector3(0, 0, 0);
+    tailParticles.start();
+    
+    // Add subtle movement to comet
+    nucleus.metadata = { 
+      velocity: new BABYLON.Vector3(
+        (Math.random() - 0.5) * 0.5,
+        (Math.random() - 0.5) * 0.5,
+        (Math.random() - 0.5) * 0.5
+      )
+    };
+    
+    this.spaceObjects.push({
+      mesh: nucleus,
+      type: 'asteroid', // Use asteroid type for now
+      position: pos,
+      discovered: false
+    });
+  }
+  
+  private createSpaceStation(pos: BABYLON.Vector3): void {
+    // Create modular space station with rotating ring
+    const stationCore = BABYLON.MeshBuilder.CreateCylinder('stationCore', {
+      height: 12,
+      diameter: 4,
+      tessellation: 8
+    }, this.scene);
+    stationCore.position = pos;
+    stationCore.rotation.x = Math.PI / 2;
+    
+    const coreMat = new BABYLON.StandardMaterial('stationCoreMat', this.scene);
+    coreMat.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.75);
+    coreMat.specularColor = new BABYLON.Color3(0.6, 0.6, 0.7);
+    coreMat.specularPower = 64;
+    stationCore.material = coreMat;
+    
+    // Rotating habitat ring
+    const habitatRing = BABYLON.MeshBuilder.CreateTorus('habitatRing', {
+      diameter: 16,
+      thickness: 2,
+      tessellation: 32
+    }, this.scene);
+    habitatRing.position = pos;
+    habitatRing.rotation.x = Math.PI / 2;
+    
+    const ringMat = new BABYLON.StandardMaterial('ringMat', this.scene);
+    ringMat.diffuseColor = new BABYLON.Color3(0.6, 0.65, 0.7);
+    ringMat.specularColor = new BABYLON.Color3(0.5, 0.6, 0.7);
+    ringMat.specularPower = 48;
+    habitatRing.material = ringMat;
+    
+    // Solar panels
+    for (let i = 0; i < 4; i++) {
+      const angle = (i / 4) * Math.PI * 2;
+      const panel = BABYLON.MeshBuilder.CreateBox('solarPanel', {
+        width: 6,
+        height: 3,
+        depth: 0.2
+      }, this.scene);
+      panel.position = pos.add(new BABYLON.Vector3(
+        Math.cos(angle) * 8,
+        Math.sin(angle) * 8,
+        0
+      ));
+      panel.rotation.z = angle;
+      
+      const panelMat = new BABYLON.StandardMaterial('panelMat', this.scene);
+      panelMat.diffuseColor = new BABYLON.Color3(0.1, 0.15, 0.3);
+      panelMat.specularColor = new BABYLON.Color3(0.3, 0.4, 0.6);
+      panelMat.specularPower = 128;
+      panelMat.emissiveColor = new BABYLON.Color3(0.05, 0.08, 0.15);
+      panel.material = panelMat;
+    }
+    
+    // Station lights (blinking effect)
+    const stationLight = new BABYLON.PointLight('stationLight', pos, this.scene);
+    stationLight.intensity = 2;
+    stationLight.range = 30;
+    stationLight.diffuse = new BABYLON.Color3(0.8, 0.9, 1.0);
+    
+    // Communication dish
+    const dish = BABYLON.MeshBuilder.CreateSphere('dish', {
+      diameter: 3,
+      segments: 16,
+      slice: 0.5
+    }, this.scene);
+    dish.position = pos.add(new BABYLON.Vector3(0, 0, 7));
+    dish.rotation.x = -Math.PI / 6;
+    
+    const dishMat = new BABYLON.StandardMaterial('dishMat', this.scene);
+    dishMat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.85);
+    dishMat.specularColor = new BABYLON.Color3(0.9, 0.9, 1.0);
+    dishMat.specularPower = 256;
+    dish.material = dishMat;
+    
+    // Add rotation animation to ring
+    habitatRing.metadata = { rotSpeed: 0.01 };
+    
+    this.spaceObjects.push({
+      mesh: stationCore,
+      type: 'asteroid', // Use asteroid type for discovery
+      position: pos,
+      discovered: false
+    });
+  }
 
   private createStarfield(): void {
     for (let i = 0; i < 1000; i++) {
@@ -552,17 +765,31 @@ export default class SpaceExplorer {
       this.info.distanceTraveled += this.shipSpeed * dt;
     }
     
-    // Rotate asteroids
+    // Rotate asteroids and animate objects
     for (const obj of this.spaceObjects) {
       if (obj.type === 'asteroid' && obj.mesh.metadata?.rotSpeed) {
         obj.mesh.rotation.y += obj.mesh.metadata.rotSpeed;
         obj.mesh.rotation.x += obj.mesh.metadata.rotSpeed * 0.7;
       }
       
+      // Move comets with their velocity
+      if (obj.mesh.name === 'comet' && obj.mesh.metadata?.velocity) {
+        obj.mesh.position.addInPlace(obj.mesh.metadata.velocity.scale(dt));
+        obj.position = obj.mesh.position.clone();
+      }
+      
       const dist = BABYLON.Vector3.Distance(this.camera.position, obj.position);
       if (dist < 50 && !obj.discovered && obj.type === 'planet') {
         obj.discovered = true;
         this.info.planetsDiscovered++;
+      }
+    }
+    
+    // Rotate space station habitat rings
+    const habitatRings = this.scene.meshes.filter(m => m.name === 'habitatRing');
+    for (const ring of habitatRings) {
+      if (ring.metadata?.rotSpeed) {
+        ring.rotation.x += ring.metadata.rotSpeed;
       }
     }
     
