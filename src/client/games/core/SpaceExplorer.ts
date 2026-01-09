@@ -736,6 +736,141 @@ export default class SpaceExplorer {
     });
   }
 
+  private createBlackHole(pos: BABYLON.Vector3): void {
+    // Event horizon (ultra-black sphere)
+    const eventHorizon = BABYLON.MeshBuilder.CreateSphere('blackHole', {
+      diameter: 15,
+      segments: 32
+    }, this.scene);
+    eventHorizon.position = pos;
+    
+    const horizonMat = new BABYLON.StandardMaterial('horizonMat', this.scene);
+    horizonMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    horizonMat.specularColor = new BABYLON.Color3(0, 0, 0);
+    horizonMat.emissiveColor = new BABYLON.Color3(0, 0, 0);
+    eventHorizon.material = horizonMat;
+    
+    // Gravitational lensing ring (glowing edge)
+    const lensingRing = BABYLON.MeshBuilder.CreateTorus('lensing', {
+      diameter: 20,
+      thickness: 0.5,
+      tessellation: 64
+    }, this.scene);
+    lensingRing.position = pos;
+    
+    const ringMat = new BABYLON.StandardMaterial('lensingMat', this.scene);
+    ringMat.emissiveColor = new BABYLON.Color3(0.3, 0.5, 1.0);
+    ringMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 0.9);
+    ringMat.alpha = 0.7;
+    lensingRing.material = ringMat;
+    
+    // Accretion disk particle system
+    const accretionDisk = new BABYLON.ParticleSystem('accretion', 1000, this.scene);
+    accretionDisk.particleTexture = new BABYLON.Texture('', this.scene);
+    accretionDisk.emitter = pos;
+    accretionDisk.minEmitBox = new BABYLON.Vector3(-15, -1, -15);
+    accretionDisk.maxEmitBox = new BABYLON.Vector3(15, 1, 15);
+    
+    accretionDisk.color1 = new BABYLON.Color4(1.0, 0.5, 0.0, 0.8);
+    accretionDisk.color2 = new BABYLON.Color4(1.0, 0.8, 0.3, 0.6);
+    accretionDisk.colorDead = new BABYLON.Color4(0.5, 0.1, 0.0, 0.2);
+    
+    accretionDisk.minSize = 0.5;
+    accretionDisk.maxSize = 1.5;
+    accretionDisk.minLifeTime = 2;
+    accretionDisk.maxLifeTime = 4;
+    
+    accretionDisk.emitRate = 100;
+    accretionDisk.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+    
+    // Orbital velocity
+    accretionDisk.addVelocityGradient(0, 2, 5);
+    accretionDisk.addVelocityGradient(1, -2, -5);
+    
+    accretionDisk.start();
+    
+    this.blackHoles.push(eventHorizon);
+    this.accretionDisks.push(accretionDisk);
+    
+    // Add warning light
+    const warningLight = new BABYLON.PointLight('blackHoleLight', pos, this.scene);
+    warningLight.intensity = 5;
+    warningLight.range = 100;
+    warningLight.diffuse = new BABYLON.Color3(1.0, 0.5, 0.0);
+  }
+
+  private createWormhole(pos: BABYLON.Vector3): void {
+    // Portal ring structure
+    const portalOuter = BABYLON.MeshBuilder.CreateTorus('wormhole', {
+      diameter: 25,
+      thickness: 2,
+      tessellation: 64
+    }, this.scene);
+    portalOuter.position = pos;
+    portalOuter.rotation.y = Math.random() * Math.PI;
+    
+    const outerMat = new BABYLON.StandardMaterial('portalMat', this.scene);
+    outerMat.emissiveColor = new BABYLON.Color3(0.0, 0.8, 1.0);
+    outerMat.diffuseColor = new BABYLON.Color3(0.0, 0.5, 0.8);
+    outerMat.specularPower = 128;
+    portalOuter.material = outerMat;
+    
+    // Inner portal disc
+    const portalDisc = BABYLON.MeshBuilder.CreateDisc('portalDisc', {
+      radius: 12,
+      tessellation: 64
+    }, this.scene);
+    portalDisc.position = pos;
+    portalDisc.rotation = portalOuter.rotation.clone();
+    
+    const discMat = new BABYLON.StandardMaterial('discMat', this.scene);
+    discMat.emissiveColor = new BABYLON.Color3(0.3, 0.7, 1.0);
+    discMat.diffuseColor = new BABYLON.Color3(0.2, 0.5, 0.9);
+    discMat.alpha = 0.5;
+    discMat.backFaceCulling = false;
+    portalDisc.material = discMat;
+    
+    // Swirling particles
+    const swirlParticles = new BABYLON.ParticleSystem('swirl', 500, this.scene);
+    swirlParticles.particleTexture = new BABYLON.Texture('', this.scene);
+    swirlParticles.emitter = pos;
+    swirlParticles.minEmitBox = new BABYLON.Vector3(-10, -10, -2);
+    swirlParticles.maxEmitBox = new BABYLON.Vector3(10, 10, 2);
+    
+    swirlParticles.color1 = new BABYLON.Color4(0.0, 0.8, 1.0, 1.0);
+    swirlParticles.color2 = new BABYLON.Color4(0.5, 0.5, 1.0, 0.8);
+    swirlParticles.colorDead = new BABYLON.Color4(0.0, 0.3, 0.6, 0.2);
+    
+    swirlParticles.minSize = 0.3;
+    swirlParticles.maxSize = 1.0;
+    swirlParticles.minLifeTime = 1;
+    swirlParticles.maxLifeTime = 3;
+    
+    swirlParticles.emitRate = 50;
+    swirlParticles.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+    
+    // Spiral motion
+    swirlParticles.direction1 = new BABYLON.Vector3(-2, -2, 0);
+    swirlParticles.direction2 = new BABYLON.Vector3(2, 2, 0);
+    
+    swirlParticles.start();
+    
+    // Store wormhole with destination metadata
+    portalOuter.metadata = {
+      isWormhole: true,
+      destination: null, // Will be paired with another wormhole
+      radius: 12
+    };
+    
+    this.wormholes.push(portalOuter);
+    
+    // Portal light
+    const portalLight = new BABYLON.PointLight('wormholeLight', pos, this.scene);
+    portalLight.intensity = 8;
+    portalLight.range = 80;
+    portalLight.diffuse = new BABYLON.Color3(0.0, 0.8, 1.0);
+  }
+
   private createStarfield(): void {
     for (let i = 0; i < 1000; i++) {
       const star = BABYLON.MeshBuilder.CreateSphere(`star${i}`, { diameter: 0.5 }, this.scene);
@@ -811,6 +946,56 @@ export default class SpaceExplorer {
     for (const ring of habitatRings) {
       if (ring.metadata?.rotSpeed) {
         ring.rotation.x += ring.metadata.rotSpeed;
+      }
+    }
+    
+    // Black hole gravity effects
+    for (const blackHole of this.blackHoles) {
+      const dist = BABYLON.Vector3.Distance(this.ship.position, blackHole.position);
+      const gravityRadius = 80;
+      
+      if (dist < gravityRadius) {
+        // Pull ship toward black hole
+        const direction = blackHole.position.subtract(this.ship.position).normalize();
+        const gravityStrength = (1 - (dist / gravityRadius)) * 0.5;
+        this.ship.position.addInPlace(direction.scale(gravityStrength * dt * 20));
+        
+        // Time dilation effect (slow down at event horizon)
+        if (dist < 15) {
+          this.shipSpeed *= 0.95;
+        }
+        
+        // Warning if too close
+        if (dist < 30 && !this.isPaused) {
+          console.log('⚠️ WARNING: Approaching event horizon!');
+        }
+      }
+    }
+    
+    // Wormhole teleportation
+    for (const wormhole of this.wormholes) {
+      const dist = BABYLON.Vector3.Distance(this.ship.position, wormhole.position);
+      const activationRadius = wormhole.metadata?.radius || 12;
+      
+      if (dist < activationRadius && wormhole.metadata?.destination) {
+        // Teleport to paired wormhole
+        const destination = wormhole.metadata.destination as BABYLON.Vector3;
+        this.ship.position = destination.clone();
+        console.log('🌀 Traveled through wormhole!');
+      }
+    }
+    
+    // Pair wormholes if not already paired
+    if (this.wormholes.length >= 2) {
+      for (let i = 0; i < this.wormholes.length; i += 2) {
+        if (i + 1 < this.wormholes.length) {
+          if (!this.wormholes[i].metadata.destination) {
+            this.wormholes[i].metadata.destination = this.wormholes[i + 1].position.clone();
+          }
+          if (!this.wormholes[i + 1].metadata.destination) {
+            this.wormholes[i + 1].metadata.destination = this.wormholes[i].position.clone();
+          }
+        }
       }
     }
     
