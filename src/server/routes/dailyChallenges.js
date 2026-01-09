@@ -169,10 +169,16 @@ router.post('/:challengeId/progress', auth, async (req, res, next) => {
 
     // Award diamonds if completed
     if (completed && !data.reward_claimed) {
+      // Validate reward is a safe numeric value
+      const safeReward = parseInt(challenge.reward, 10);
+      if (isNaN(safeReward) || safeReward < 0 || safeReward > 10000) {
+        throw new Error('Invalid reward value');
+      }
+
       await supabase
         .from('users')
         .update({
-          diamonds: supabase.raw(`diamonds + ${challenge.reward}`)
+          diamonds: supabase.raw(`diamonds + ${safeReward}`)
         })
         .eq('id', userId);
 

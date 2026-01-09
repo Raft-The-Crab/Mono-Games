@@ -10,7 +10,16 @@ class TokenManager {
   constructor() {
     this.blacklist = new Set(); // In-memory fallback for blacklisted tokens
     this.userTokens = new Map(); // Track tokens per user
-    this.JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+    
+    // Ensure JWT_SECRET is set or generate a secure random one
+    if (!process.env.JWT_SECRET) {
+      console.warn('[TokenManager] JWT_SECRET not set! Generating random secret for this session.');
+      console.warn('[TokenManager] WARNING: Tokens will be invalidated on server restart!');
+      this.JWT_SECRET = require('crypto').randomBytes(32).toString('hex');
+    } else {
+      this.JWT_SECRET = process.env.JWT_SECRET;
+    }
+    
     this.ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || '15m';
     this.REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || '7d';
   }

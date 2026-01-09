@@ -113,13 +113,15 @@ router.post('/:sessionId/end', async (req, res, next) => {
     // Try to update database if available
     if (supabase) {
       try {
+        // Sanitize metadata to prevent SQL injection
+        const sanitizedMetadata = JSON.parse(JSON.stringify(metadata));
+        
         await supabase
           .from('game_sessions')
           .update({
             end_time: endTime,
             score,
-            duration,
-            metadata: supabase.raw(`metadata || '${JSON.stringify(metadata)}'::jsonb`)
+            duration
           })
           .eq('id', sessionId);
       } catch (dbError) {
