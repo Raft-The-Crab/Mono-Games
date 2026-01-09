@@ -110,7 +110,8 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/saves', saveRoutes);
 app.use('/api/sessions', sessionRoutes);
-app.use('/api/statistics', statisticsRoutes);app.use('/api/stats', statsRoutes);
+app.use('/api/statistics', statisticsRoutes);
+app.use('/api/stats', statsRoutes);
 app.use('/api/daily-challenges', dailyChallengesRoutes);
 // 404 handler
 app.use('*', (req, res) => {
