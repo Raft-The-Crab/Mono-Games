@@ -88,6 +88,10 @@ export default class SpaceExplorer {
   private spaceWhales: BABYLON.Mesh[] = [];
   private alienEncounterTimer: number = 0;
   
+  // Space Anomalies
+  private anomalies: BABYLON.Mesh[] = [];
+  private anomalyParticles: BABYLON.ParticleSystem[] = [];
+  
   private keys: { [key: string]: boolean } = {};
   private freeCamMode: boolean = false;
   
@@ -409,6 +413,15 @@ export default class SpaceExplorer {
     }
     
     this.alienEncounterTimer = 60 + Math.random() * 60; // Random encounter every 1-2 minutes
+    
+    // Add space anomalies (quantum rifts, radiation zones)
+    for (let i = 0; i < 3; i++) {
+      const x = (Math.random() - 0.5) * 1000;
+      const y = (Math.random() - 0.5) * 1000;
+      const z = (Math.random() - 0.5) * 1000;
+      const anomalyType = Math.random() > 0.5 ? 'quantum' : 'radiation';
+      this.createAnomaly(new BABYLON.Vector3(x, y, z), anomalyType);
+    }
     
     this.createStarfield();
   }
@@ -1054,6 +1067,63 @@ export default class SpaceExplorer {
     
     this.spaceWhales.push(whale);
     console.log('🐋 Space whale sighted!');
+  }
+  
+  private createAnomaly(pos: BABYLON.Vector3, type: 'quantum' | 'radiation'): void {
+    if (type === 'quantum') {
+      // Quantum rift - distorted space effect
+      const rift = BABYLON.MeshBuilder.CreateTorus('quantumRift', {
+        diameter: 20,
+        thickness: 2,
+        tessellation: 32
+      }, this.scene);
+      rift.position = pos;
+      
+      const riftMat = new BABYLON.StandardMaterial('riftMat', this.scene);
+      riftMat.emissiveColor = new BABYLON.Color3(0.5, 0.0, 1.0);
+      riftMat.diffuseColor = new BABYLON.Color3(0.3, 0.0, 0.8);
+      riftMat.alpha = 0.7;
+      rift.material = riftMat;
+      
+      // Add particle effect
+      const particles = new BABYLON.ParticleSystem('riftParticles', 500, this.scene);
+      particles.particleTexture = new BABYLON.Texture('', this.scene);
+      particles.emitter = pos;
+      particles.minEmitBox = new BABYLON.Vector3(-10, -10, -10);
+      particles.maxEmitBox = new BABYLON.Vector3(10, 10, 10);
+      particles.color1 = new BABYLON.Color4(0.5, 0.0, 1.0, 1.0);
+      particles.color2 = new BABYLON.Color4(0.8, 0.0, 1.0, 0.5);
+      particles.colorDead = new BABYLON.Color4(0, 0, 0, 0);
+      particles.minSize = 0.5;
+      particles.maxSize = 1.5;
+      particles.minLifeTime = 2;
+      particles.maxLifeTime = 4;
+      particles.emitRate = 50;
+      particles.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+      particles.start();
+      
+      rift.metadata = { type: 'quantum', rotation: 0 };
+      this.anomalies.push(rift);
+      this.anomalyParticles.push(particles);
+      console.log('⚛️ Quantum anomaly detected!');
+    } else {
+      // Radiation zone - glowing hazardous area
+      const zone = BABYLON.MeshBuilder.CreateSphere('radiationZone', {
+        diameter: 25,
+        segments: 16
+      }, this.scene);
+      zone.position = pos;
+      
+      const zoneMat = new BABYLON.StandardMaterial('zoneMat', this.scene);
+      zoneMat.emissiveColor = new BABYLON.Color3(0.0, 1.0, 0.3);
+      zoneMat.diffuseColor = new BABYLON.Color3(0.0, 0.8, 0.2);
+      zoneMat.alpha = 0.3;
+      zone.material = zoneMat;
+      
+      zone.metadata = { type: 'radiation', pulsePhase: 0 };
+      this.anomalies.push(zone);
+      console.log('☢️ Radiation zone warning!');
+    }
   }
 
   private createStarfield(): void {

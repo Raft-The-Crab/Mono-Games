@@ -116,6 +116,10 @@ export default class InfiniteRoads {
   private hazards: BABYLON.Mesh[] = [];
   private hazardChance: number = 0.05; // 5% chance per segment
   
+  // Emergency Vehicles 🚓🚑🚒
+  private emergencyVehicles: TrafficCar[] = [];
+  private emergencySpawnTimer: number = 0;
+  
   
   // Lighting & Post-Processing
   private sunLight!: BABYLON.DirectionalLight;
@@ -2055,6 +2059,13 @@ export default class InfiniteRoads {
       this.spawnTrafficCar();
     }
     
+    // Spawn emergency vehicles occasionally
+    this.emergencySpawnTimer -= dt;
+    if (this.emergencySpawnTimer <= 0 && Math.random() < 0.1) {
+      this.spawnEmergencyVehicle();
+      this.emergencySpawnTimer = 30 + Math.random() * 60; // Every 30-90 seconds
+    }
+    
     // Update existing traffic
     for (const car of this.trafficCars) {
       // Move car forward
@@ -2117,6 +2128,64 @@ export default class InfiniteRoads {
     car.mesh.metadata = car.mesh.metadata || {};
     car.mesh.metadata.hasHeadlights = true;
     car.mesh.metadata.lights = [leftHeadlight, rightHeadlight];
+  }
+  
+  private spawnEmergencyVehicle(): void {
+    const types = ['police', 'ambulance', 'firetruck'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    let vehicleMesh: BABYLON.Mesh;
+    let color: BABYLON.Color3;
+    let lightColor: BABYLON.Color3;
+    
+    if (type === 'police') {
+      vehicleMesh = BABYLON.MeshBuilder.CreateBox('police', { width: 2.2, height: 1.8, depth: 4.5 }, this.scene);
+      color = new BABYLON.Color3(0.0, 0.0, 0.0); // Black and white
+      lightColor = new BABYLON.Color3(1.0, 0.0, 0.0); // Red and blue
+      console.log('🚓 Police car approaching!');
+    } else if (type === 'ambulance') {
+      vehicleMesh = BABYLON.MeshBuilder.CreateBox('ambulance', { width: 2.5, height: 2.5, depth: 5 }, this.scene);
+      color = new BABYLON.Color3(1.0, 1.0, 1.0); // White
+      lightColor = new BABYLON.Color3(1.0, 0.0, 0.0); // Red
+      console.log('🚑 Ambulance passing through!');
+    } else {
+      vehicleMesh = BABYLON.MeshBuilder.CreateBox('firetruck', { width: 2.8, height: 3.2, depth: 6 }, this.scene);
+      color = new BABYLON.Color3(0.9, 0.1, 0.0); // Red
+      lightColor = new BABYLON.Color3(1.0, 0.0, 0.0);
+      console.log('🚒 Fire truck on emergency call!');
+    }
+    
+    const mat = new BABYLON.StandardMaterial('emergencyMat', this.scene);
+    mat.diffuseColor = color;
+    mat.specularColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+    mat.specularPower = 128;
+    vehicleMesh.material = mat;
+    
+    // Add flashing lights
+    const light1 = new BABYLON.PointLight(`siren_${Date.now()}`, vehicleMesh.position, this.scene);
+    light1.intensity = 5;
+    light1.range = 25;
+    light1.diffuse = lightColor;
+    light1.parent = vehicleMesh;
+    
+    const lane = Math.floor(Math.random() * 3) - 1;
+    const spawnDistance = this.distanceTraveled + this.trafficSpawnDistance + Math.random() * 50;
+    
+    vehicleMesh.position.y = 1;
+    vehicleMesh.position.z = spawnDistance;
+    
+    const trafficCar: TrafficCar = {
+      mesh: vehicleMesh,
+      speed: this.carSpeed * 1.5, // Emergency vehicles go faster
+      lane: lane,
+      position: spawnDistance,
+      type: 'suv'
+    };
+    
+    vehicleMesh.metadata = { isEmergency: true, lights: [light1], flashPhase: 0 };
+    
+    this.emergencyVehicles.push(trafficCar);
+    this.trafficCars.push(trafficCar);
   }
 
   private updateLighting(): void {

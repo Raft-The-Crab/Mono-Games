@@ -65,6 +65,15 @@ export default class CampfireSimulator {
   private chairMeshes: BABYLON.Mesh[] = [];
   private coolerMesh!: BABYLON.Mesh;
   
+  // Cooking System
+  private cookingItems: BABYLON.Mesh[] = [];
+  private isCooking: boolean = false;
+  private cookingTimer: number = 0;
+  
+  // Ambient Audio
+  private audioTimer: number = 0;
+  private lastSoundTime: number = 0;
+  
   private keys: { [key: string]: boolean } = {};
   
   public info = {
@@ -722,11 +731,22 @@ export default class CampfireSimulator {
   }
   
   private updateWildlife(dt: number): void {
-    // Spawn wildlife occasionally
+    // Spawn wildlife occasionally (affected by weather)
     this.wildlifeTimer -= dt;
     if (this.wildlifeTimer <= 0 && this.wildlife.length < 3) {
-      this.spawnWildlife();
-      this.wildlifeTimer = 20 + Math.random() * 40; // Every 20-60 seconds
+      // Weather affects spawn rate
+      const weatherMultiplier = this.currentWeather === 'storm' ? 0 : 
+                                this.currentWeather === 'rain' ? 2 : 
+                                this.currentWeather === 'fog' ? 1.5 : 1;
+      
+      if (weatherMultiplier > 0) {
+        this.spawnWildlife();
+        this.wildlifeTimer = (20 + Math.random() * 40) * weatherMultiplier;
+      } else {
+        // Animals hide during storms
+        this.wildlifeTimer = 60; // Check again in 60 seconds
+        console.log('⛈️ Wildlife hiding from the storm...');
+      }
     }
     
     // Update existing wildlife
@@ -774,6 +794,12 @@ export default class CampfireSimulator {
         this.auroraParticles.stop();
       }
     }
+    
+    // Update cooking
+    this.updateCooking(dt);
+    
+    // Play nature sounds
+    this.playNatureSounds();
   }
 
   private initializeParticles(): void {
@@ -997,6 +1023,49 @@ export default class CampfireSimulator {
     if (this.fireIntensity < 100) {
       this.fireIntensity = Math.min(100, this.fireIntensity + 10);
       this.info.fireStrength = Math.round(this.fireIntensity);
+    }
+  }
+  
+  // Cooking System
+  private startCooking(foodType: 'marshmallow' | 'hotdog' | 'coffee'): void {
+    this.isCooking = true;
+    this.cookingTimer = 5; // 5 seconds to cook
+    
+    if (foodType === 'coffee') {
+      const pot = BABYLON.MeshBuilder.CreateCylinder('coffeePot', {
+        diameter: 0.5,
+        height: 0.6
+      }, this.scene);
+      pot.position.set(1, 0.5, 0.5);
+      
+      const potMat = new BABYLON.StandardMaterial('potMat', this.scene);
+      potMat.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.25);
+      potMat.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+      pot.material = potMat;
+      
+      this.cookingItems.push(pot);
+      console.log('☕ Brewing coffee...');
+    }
+  }
+  
+  private updateCooking(dt: number): void {
+    if (this.isCooking && this.cookingTimer > 0) {
+      this.cookingTimer -= dt;
+      if (this.cookingTimer <= 0) {
+        this.isCooking = false;
+        console.log('✨ Food is ready!');
+      }
+    }
+  }
+  
+  // Ambient Audio
+  private playNatureSounds(): void {
+    const now = Date.now() / 1000;
+    if (now - this.lastSoundTime > 10) { // Every 10 seconds
+      const sounds = ['🦉 An owl hoots in the distance', '🐺 A wolf howls far away', '🦗 Crickets chirp rhythmically'];
+      const sound = sounds[Math.floor(Math.random() * sounds.length)];
+      console.log(sound);
+      this.lastSoundTime = now;
     }
   }
 
