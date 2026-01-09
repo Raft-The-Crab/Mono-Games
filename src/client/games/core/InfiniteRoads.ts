@@ -19,6 +19,7 @@
  */
 
 import * as BABYLON from '@babylonjs/core';
+import { InfiniteRoadsMenu, GameSettings } from './InfiniteRoadsMenu';
 
 type Weather = 'clear' | 'rain' | 'fog' | 'sunset' | 'storm';
 type Biome = 'grassland' | 'desert' | 'forest' | 'snow' | 'coastal';
@@ -44,6 +45,20 @@ export default class InfiniteRoads {
   private engine: BABYLON.Engine;
   private scene: BABYLON.Scene;
   private camera: BABYLON.ArcRotateCamera;
+  
+  // Menu System
+  private menu!: InfiniteRoadsMenu;
+  private gameSettings: GameSettings = {
+    graphics: 'high',
+    shadows: true,
+    particles: true,
+    postProcessing: true,
+    antialiasing: true,
+    volume: 0.7,
+    musicVolume: 0.5,
+    sfxVolume: 0.8
+  };
+  private gameStarted: boolean = false;
   
   // Car Models
   private availableCars: CarModel[] = [];
@@ -124,7 +139,8 @@ export default class InfiniteRoads {
     weather: 'Clear',
     biome: 'Grassland',
     car: 'Sedan',
-    fps: 60
+    fps: 60,
+    camera: 'Chase Camera'
   };
 
   constructor(containerId: string) {
@@ -147,6 +163,14 @@ export default class InfiniteRoads {
     
     this.scene = new BABYLON.Scene(this.engine);
     this.scene.clearColor = new BABYLON.Color4(0.53, 0.81, 0.92, 1);
+    
+    // Initialize menu system FIRST - game won't start until user clicks Start
+    this.menu = new InfiniteRoadsMenu(
+      containerId,
+      (carIndex, settings) => this.startGame(carIndex, settings),
+      () => this.resumeGame(),
+      (settings) => this.applySettings(settings)
+    );
     
     this.camera = new BABYLON.ArcRotateCamera(
       'camera',
@@ -171,13 +195,24 @@ export default class InfiniteRoads {
 
   private setupInput(): void {
     window.addEventListener('keydown', (e) => {
+      // ESC key for pause menu
+      if (e.key === 'Escape') {
+        if (this.gameStarted && !this.isPaused) {
+          this.pauseGame();
+        }
+        return;
+      }
+      
+      // Only process game keys if game is started and not paused
+      if (!this.gameStarted || this.isPaused) return;
+      
       this.keys[e.key.toLowerCase()] = true;
       if (e.key === 'c') this.cycleCameraView();
       if (e.key === 't') this.cycleTime();
-      if (e.key === 'w') this.cycleWeather();
+      if (e.key === 'n') this.cycleWeather(); // Changed from 'w' to avoid conflict with forward
       if (e.key === 'b') this.cycleBiome();
-      if (e.key === 'v') this.cycleCarModel(); // NEW: Change car with 'V' key
-      if (e.key === 'h') this.toggleHelp(); // NEW: Show help overlay
+      if (e.key === 'v') this.cycleCarModel();
+      if (e.key === 'h') this.toggleHelp();
     });
 
     window.addEventListener('keyup', (e) => {
@@ -185,6 +220,7 @@ export default class InfiniteRoads {
     });
 
     this.canvas.addEventListener('mousedown', (e) => {
+      if (!this.gameStarted) return;
       this.mouseDown = true;
       this.lastMouseX = e.clientX;
       this.canvas.style.cursor = 'grabbing';
@@ -284,12 +320,7 @@ export default class InfiniteRoads {
     this.defaultPipeline.depthOfField.focalLength = 50;
     this.defaultPipeline.depthOfField.focusDistance = 2000;
 
-    // Better fog f - better angles like slowroads.io
-    this.cameraViews = [
-      { name: 'Chase', alpha: -Math.PI / 2, beta: Math.PI / 3.5, radius: 18 },
-      { name: 'Close', alpha: -Math.PI / 2, beta: Math.PI / 4, radius: 12 },
-      { name: 'Aerial', alpha: -Math.PI / 2, beta: Math.PI / 2.2, radius: 35 },
-      { name: 'Cinematic', alpha: -Math.PI / 2.3, beta: Math.PI / 3.2, radius: 22
+    // Skybox for atmosphere
     const skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 10000 }, this.scene);
     const skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this.scene);
     skyboxMaterial.backFaceCulling = false;
@@ -297,18 +328,19 @@ export default class InfiniteRoads {
     skyboxMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.7, 1.0);
     skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true
+    skybox.infiniteDistance = true;
+    
     // Fog for atmosphere
     this.scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
     this.scene.fogDensity = 0.008;
     this.scene.fogColor = new BABYLON.Color3(0.8, 0.9, 1.0);
     
-    // Camera views
+    // Camera views - better angles like slowroads.io
     this.cameraViews = [
-      { name: 'Default', alpha: -Math.PI / 2, beta: Math.PI / 3, radius: 25 },
-      { name: 'Close', alpha: -Math.PI / 2, beta: Math.PI / 4, radius: 15 },
-      { name: 'Far', alpha: -Math.PI / 2, beta: Math.PI / 2.5, radius: 40 },
-      { name: 'Behind', alpha: Math.PI, beta: Math.PI / 3, radius: 20 }
+      { name: 'Chase Camera', alpha: -Math.PI / 2, beta: Math.PI / 3.5, radius: 18 },
+      { name: 'Close Follow', alpha: -Math.PI / 2, beta: Math.PI / 4, radius: 12 },
+      { name: 'Aerial View', alpha: -Math.PI / 2, beta: Math.PI / 2.2, radius: 35 },
+      { name: 'Cinematic', alpha: -Math.PI / 2.3, beta: Math.PI / 3.2, radius: 22 }
     ];
 
     this.createCar();
@@ -1170,16 +1202,6 @@ export default class InfiniteRoads {
       }
     }
   }
-      cloud.position.z = (Math.random() - 0.5) * 500;
-      
-      const cloudMat = new BABYLON.StandardMaterial(`cloudMat_${i}`, this.scene);
-      cloudMat.diffuseColor = new BABYLON.Color3(1, 1, 1);
-      cloudMat.alpha = 0.8;
-      cloud.material = cloudMat;
-      
-      this.clouds.push(cloud);
-    }
-  }
 
   private getBiomeColor(): BABYLON.Color3 {
     switch (this.currentBiome) {
@@ -1193,14 +1215,8 @@ export default class InfiniteRoads {
   }
 
   setup(): void {
-    this.isRunning = true;
-    this.isPaused = false;
-    this.engine.runRenderLoop(() => {
-      if (!this.isPaused && this.isRunning) {
-        this.update(this.engine.getDeltaTime());
-        this.render();
-      }
-    });
+    // DON'T start game automatically - let menu handle it
+    console.log('[InfiniteRoads] Setup complete - waiting for user to start game from menu');
   }
 
   // Required by GamePlay.tsx - initialize game
@@ -1211,19 +1227,18 @@ export default class InfiniteRoads {
 
   // Required by GamePlay.tsx - start game
   start(): void {
-    console.log('[InfiniteRoads] Starting...');
-    this.isRunning = true;
-    this.isPaused = false;
+    console.log('[InfiniteRoads] Start called - game will start from menu');
+    // Menu system handles actual game start
   }
 
   // Required by GamePlay.tsx - pause game
   pause(): void {
-    this.isPaused = true;
+    this.pauseGame();
   }
 
   // Required by GamePlay.tsx - resume game
   resume(): void {
-    this.isPaused = false;
+    this.resumeGame();
   }
 
   // Required by GamePlay.tsx - reset game
@@ -1498,16 +1513,18 @@ export default class InfiniteRoads {
 
   private cycleCameraView(): void {
     const views = [
-      { alpha: -Math.PI / 2, beta: Math.PI / 3, radius: 25 },
-      { alpha: -Math.PI / 2, beta: Math.PI / 4, radius: 15 },
-      { alpha: -Math.PI / 2, beta: Math.PI / 2.5, radius: 40 },
-      { alpha: Math.PI, beta: Math.PI / 3, radius: 20 }
+      { name: 'Chase Camera', alpha: -Math.PI / 2, beta: Math.PI / 3, radius: 25 },
+      { name: 'Close Follow', alpha: -Math.PI / 2, beta: Math.PI / 4, radius: 15 },
+      { name: 'Far View', alpha: -Math.PI / 2, beta: Math.PI / 2.5, radius: 40 },
+      { name: 'Front View', alpha: Math.PI, beta: Math.PI / 3, radius: 20 }
     ];
     
     const current = views.findIndex(v => 
       Math.abs(this.camera.alpha - v.alpha) < 0.1
     );
     const next = (current + 1) % views.length;
+    
+    this.info.camera = views[next].name;
     
     BABYLON.Animation.CreateAndStartAnimation(
       'cameraAnim',
@@ -1622,6 +1639,89 @@ export default class InfiniteRoads {
     leavesSystem.color1 = new BABYLON.Color4(0.2, 0.6, 0.1, 0.7);
     leavesSystem.color2 = new BABYLON.Color4(0.8, 0.5, 0.1, 0.6);
     this.leavesParticles = { system: leavesSystem, active: false };
+  }
+  
+  // Menu System Methods
+  private startGame(carIndex: number, settings: GameSettings): void {
+    this.currentCarIndex = carIndex;
+    this.gameSettings = settings;
+    this.applySettings(settings);
+    
+    // Show HUD
+    this.menu.showInGameHUD();
+    
+    // Start game loop
+    this.gameStarted = true;
+    this.isRunning = true;
+    this.isPaused = false;
+    
+    // Start render loop if not already running
+    if (!this.engine.activeRenderLoops.length) {
+      this.engine.runRenderLoop(() => {
+        if (this.isRunning && !this.isPaused) {
+          this.update(this.engine.getDeltaTime());
+          this.menu.updateHUD(this.info);
+          this.render();
+        } else {
+          this.scene.render();
+        }
+      });
+    }
+  }
+  
+  private pauseGame(): void {
+    this.isPaused = true;
+    this.menu.showPauseMenu();
+  }
+  
+  private resumeGame(): void {
+    this.isPaused = false;
+    this.menu.hidePauseMenu();
+  }
+  
+  private applySettings(settings: GameSettings): void {
+    this.gameSettings = settings;
+    
+    // Apply graphics settings
+    if (this.shadowGenerator) {
+      this.shadowGenerator.getShadowMap()!.renderList = settings.shadows ? 
+        [this.car, ...this.sceneryObjects] : [];
+    }
+    
+    // Apply particle settings
+    if (!settings.particles) {
+      this.rainParticles.system?.stop();
+      this.dustParticles.system?.stop();
+      this.snowParticles.system?.stop();
+      this.leavesParticles.system?.stop();
+    }
+    
+    // Apply post-processing
+    if (this.defaultPipeline) {
+      this.defaultPipeline.bloomEnabled = settings.postProcessing;
+      this.defaultPipeline.depthOfFieldEnabled = settings.postProcessing;
+      this.defaultPipeline.fxaaEnabled = settings.antialiasing;
+    }
+    
+    // Apply quality presets
+    switch (settings.graphics) {
+      case 'ultra':
+        this.renderDistance = 50;
+        if (this.shadowGenerator) this.shadowGenerator.mapSize = 4096;
+        break;
+      case 'high':
+        this.renderDistance = 40;
+        if (this.shadowGenerator) this.shadowGenerator.mapSize = 2048;
+        break;
+      case 'medium':
+        this.renderDistance = 30;
+        if (this.shadowGenerator) this.shadowGenerator.mapSize = 1024;
+        break;
+      case 'low':
+        this.renderDistance = 20;
+        if (this.shadowGenerator) this.shadowGenerator.mapSize = 512;
+        break;
+    }
   }
 
   // Compatibility methods (no scoring)
