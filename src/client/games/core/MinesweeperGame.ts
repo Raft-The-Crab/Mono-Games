@@ -4,8 +4,6 @@
  * Click to reveal, right-click to flag
  */
 
-import type { Game } from '../shared/types';
-
 interface Cell {
   row: number;
   col: number;
@@ -24,7 +22,7 @@ const DIFFICULTY_SETTINGS = {
   expert: { rows: 24, cols: 30, mines: 150 }
 };
 
-export class MinesweeperGame implements Game {
+export class MinesweeperGame {
   name = 'Minesweeper';
   description = 'Find all mines without detonating them!';
   category = 'puzzle' as const;

@@ -1410,8 +1410,7 @@ export default class InfiniteRoads {
     const entrance = BABYLON.MeshBuilder.CreateTorus(`tunnelEntrance_${index}`, {
       diameter: this.roadWidth + 4,
       thickness: 1.5,
-      tessellation: 24,
-      arc: 0.5
+      tessellation: 24
     }, this.scene);
     entrance.position.x = centerX;
     entrance.position.y = centerY + (this.roadWidth + 4) / 4;

@@ -18,11 +18,6 @@
  */
 
 import { offlineStorage } from './offlineStorage';
-import CryptoJS from 'crypto-js'; // For encryption
-
-// LZ-String compression library (need to install)
-// npm install lz-string
-import LZString from 'lz-string';
 
 interface GitHubConfig {
   owner: string;

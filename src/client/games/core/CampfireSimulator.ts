@@ -58,6 +58,7 @@ export default class CampfireSimulator {
   private auroraParticles!: BABYLON.ParticleSystem;
   private auroraVisible: boolean = false;
   private wildlifeTimer: number = 0;
+  private currentWeather: string = 'clear';
   
   // Camping Equipment
   private campingGear: BABYLON.Mesh[] = [];
@@ -131,7 +132,7 @@ export default class CampfireSimulator {
       this.keys[e.key.toLowerCase()] = true;
       if (e.key === 'l') this.addLog();
       if (e.key === 'm') this.roastMarshmallow();
-      if (e.key === ' ') this.stokeF ire(); // Space to stoke fire
+      if (e.key === ' ') this.stokeFire(); // Space to stoke fire
     });
     window.addEventListener('keyup', (e) => this.keys[e.key.toLowerCase()] = false);
     

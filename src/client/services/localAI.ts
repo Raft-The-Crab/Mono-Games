@@ -400,8 +400,8 @@ export class ConnectFourAI {
  */
 export class PongAI {
   private difficulty: AIDifficulty;
-  private reactionSpeed: number;
-  private accuracy: number;
+  private reactionSpeed: number = 0.5;
+  private accuracy: number = 0.5;
 
   constructor(difficulty: AIDifficulty = 'medium') {
     this.difficulty = difficulty;
