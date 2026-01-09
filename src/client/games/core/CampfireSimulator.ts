@@ -510,7 +510,17 @@ export default class CampfireSimulator {
 
   setup(): void {
     this.engine.runRenderLoop(() => {
-      this.update(this.engine.getDeltaTime());
+      if (this.isRunning && !this.isPaused && this.gameStarted) {
+        this.update(this.engine.getDeltaTime());
+        
+        // Update HUD
+        const timeOfDayStr = this.getTimeOfDay();
+        const fireStateStr = this.getFireState();
+        this.menu.updateHUD({
+          fireState: fireStateStr,
+          timeOfDay: timeOfDayStr
+        });
+      }
       this.scene.render();
     });
     window.addEventListener('resize', () => this.engine.resize());
@@ -532,6 +542,24 @@ export default class CampfireSimulator {
     const phases = ['New Moon', 'Waxing Crescent', 'First Quarter', 'Waxing Gibbous', 'Full Moon', 'Waning Gibbous', 'Last Quarter', 'Waning Crescent'];
     this.info.moonPhase = phases[Math.floor(this.moonPhase * 8)];
     this.info.fireStrength = Math.round(this.fireIntensity);
+  }
+  
+  private getFireState(): string {
+    if (this.fireIntensity > 80) return 'Blazing';
+    if (this.fireIntensity > 60) return 'Burning Strong';
+    if (this.fireIntensity > 40) return 'Burning';
+    if (this.fireIntensity > 20) return 'Smoldering';
+    if (this.fireIntensity > 5) return 'Dying';
+    return 'Embers';
+  }
+  
+  private getTimeOfDay(): string {
+    const phase = this.timeOfNight % 1;
+    if (phase < 0.2) return 'Night';
+    if (phase < 0.4) return 'Midnight';
+    if (phase < 0.6) return 'Pre-Dawn';
+    if (phase < 0.8) return 'Dawn';
+    return 'Early Morning';
   }
   
   // Stoke the fire to increase intensity
